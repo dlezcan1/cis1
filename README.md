@@ -1,1 +1,1 @@
-# cis1
+Computer-Integrated Surgery I course programming assignments.
