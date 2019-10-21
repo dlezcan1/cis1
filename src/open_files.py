@@ -1,14 +1,15 @@
 """ Open data files
     The output format is dictionary
-    """
+"""
 import sys
 import numpy as np
 
-DEFAULT_DIR = "/Users/songhyunwoo/Documents/JohnsHopkins/2019 Fall_Local/Computer Integrated Surgery/Programming1_2/PA 1-2 Student Data/"
+# DEFAULT_DIR = "/Users/songhyunwoo/Documents/JohnsHopkins/2019 Fall_Local/Computer Integrated Surgery/Programming1_2/PA 1-2 Student Data/"
+DEFAULT_DIR = "../pa1-2_data/"
 
 def open_calbody(file_name):
     tmp = np.empty([1,3])
-    with open(DEFAULT_DIR + file_name + "calbody.txt","r") as filestream:
+    with open(file_name,"r") as filestream: # made more general by Dimitri Lezcano
         for line in filestream:
             currentline = line.split(",")
             tmpArray = [float(currentline[0]), float(currentline[1]), float(currentline[2])]
@@ -25,9 +26,11 @@ def open_calbody(file_name):
 
     return calbody
 
-def open_calreadings(file_name):
+# open_calbody
+
+def open_calreadings(file_name): 
     tmp = np.empty([1,3])
-    with open(DEFAULT_DIR + file_name + "calreadings.txt","r") as filestream:
+    with open(file_name,"r") as filestream: # made more general by Dimitri Lezcano
         lines = filestream.read().split('\n')
         N_D, N_A, N_C, N_frame, file_name = lines[0].split(',')
         for lIdx in range(1,len(lines)-1):
@@ -51,3 +54,96 @@ def open_calreadings(file_name):
         calreadings['frame'+str(fIdx+1)] = tmpDict
 
     return calreadings
+
+# open_calreadings
+
+
+def open_empivot(filename: str):
+    """ A function that reads in the the data from an empivot.txt data file and returns
+        a dictionary of the frames from the EM markers.
+        
+        @param filename: string of the 'empivot' filename to be read
+        
+        @return: dictionary of each frame labelled 'frame1', 'frame2', ...
+                 Each frame is a list of the coordinates for each EM marker.
+        
+    """ 
+    
+    with open(filename,"r") as file:
+        lines = file.read().split('\n')
+        
+        # read in the first line
+        N_EMmarks, N_frames, _ = lines[0].split(',')
+        N_EMmarks = int(N_EMmarks) # int conversion
+        N_frames = int(N_frames)   # int conversion
+        
+        # process thre frames
+        empivot = {}
+        for i in range(1, N_frames + 1):
+            marker_coordinates = []
+            for j in range(N_EMmarks):
+                coords = np.fromstring(lines[i + j], dtype = float ,sep=',')
+                marker_coordinates.append(coords) # add the position from the jth EM marker
+            
+            # for
+                
+            empivot['frame' + str(i)] = marker_coordinates 
+        
+        # for
+        
+    # with 
+    
+    return empivot
+            
+# open_empivot
+
+def open_optpivot(filename: str):
+    """ A function that reads in the the data from an optpivot.txt data file and returns
+        two dictionaries of  the frames fo each of the optical and EM trackers.
+        
+        @param filename: string of the 'optpivot' filename to be read
+        
+        @return: 2 dictionaries where each frame is labelled 'frame1', 'frame2', ...
+                 Each frame is a list of the coordinates of each marker
+                 for the EM and OPT markers
+        
+    """ 
+    
+    with open(filename,"r") as file:
+        lines = file.read().split('\n')
+        
+        # read in the first line
+        N_EMmarks, N_OPTmarks, N_frames, _ = lines[0].split(',')
+        N_EMmarks = int(N_EMmarks)      # int conversion
+        N_OPTmarks = int(N_OPTmarks)    # int conversion
+        N_frames = int(N_frames)        # int conversion
+        
+        # process the frames
+        empivot = {}
+        optpivot = {}
+        for i in range(1, N_frames + 1):
+            #process EM coordinate frame
+            emmarker_coordinates = []
+            for j in range(N_EMmarks):
+                coords = np.fromstring(lines[i + j], dtype = float ,sep=',')
+                emmarker_coordinates.append(coords) # add the position from the jth EM marker
+            
+            # for
+            empivot['frame' + str(i)] = emmarker_coordinates 
+            
+            #process OPT coordinate frame
+            optmarker_coordinates = []
+            for k in range(N_OPTmarks):
+                coords = np.fromstring(lines[i + N_EMmarks + k], dtype = float ,sep=',')
+                optmarker_coordinates.append(coords) # add the position from the jth OPT marker
+                
+            #for
+            optpivot['frame' + str(i)] = optmarker_coordinates     
+        
+        # for
+        
+    # with 
+    
+    return [optpivot, empivot]
+            
+# open_optpivot

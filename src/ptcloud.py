@@ -29,7 +29,7 @@ def point_cloud_reg(a, b):
     ab_zx = np.sum(np.multiply(a_hat[:,2], b_hat[:,0]))
     ab_zy = np.sum(np.multiply(a_hat[:,2], b_hat[:,1]))
     
-    H = np.array([[ab_xx, ab_xy, ab_xz],[ab_yz, ab_yy, ab_yz], [ab_zx, ab_zy, ab_zz]])
+    H = np.array([[ab_xx, ab_xy, ab_xz],[ab_yx, ab_yy, ab_yz], [ab_zx, ab_zy, ab_zz]])
 
     # Compute G
     H_trace = np.trace(H)
