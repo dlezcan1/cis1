@@ -17,7 +17,19 @@ import re
 def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
     """ This function is to undistort the calibration object viewed from 
         the EM tracker using the optical tracker as a ground truth to the
-        position of the calibration object. This is a function for problem 4
+        position of the calibration object. This is a function for problem 4.
+        
+        This function will write a file, of the same file format as 
+        the output1 files provided, with the 2nd and third rows as 
+        "0, 0, 0\n" as these will serve as place-holders for the post position
+        not calculated in this function.
+        
+        i.e. (File name)
+        filename_calbody    = pa1-unknown-c-calbody.txt
+        filename_calreading = pa1-unknown-c-calreadings.txt
+        output filename     = pa1-unknown-c-output1.txt
+
+        @author: Dimitri Lezcano    
     
         @param filename_calbody:    takes a string of the file name for 
                                     the calibration body
@@ -26,7 +38,6 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
         
         @return: C_j, the calibrated, expected values for the em-tracker 
                  position of the calibration body for each of the f
-    
     """
     # attain the metaadta from filename
     name_pattern = r'pa(.)-(debug|unknown)-(.)-calbody.txt'
@@ -39,14 +50,14 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
     calbody = open_files.open_calbody( filename_calbody )
     calib_data = open_files.open_calreadings( filename_calreading )
     
-    frames = calbody.keys()
+    frames = calib_data.keys()
     zoom = np.ones( 3 )  # for frame composition
     
     C_expected_frames = []
     # start to iterate over the frames getting the required points
     for frame in frames: 
         ###################### part a ###################### 
-        d_coords = calbody[frame]['vec_d']
+        d_coords = calbody['vec_d']
         D_coords = calib_data[frame]['vec_d']
         
         # frame for d -> D
@@ -54,40 +65,46 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
         # homogenous representation  
         F_D = transforms3d_extend.affines.compose( F_D['Trans'],
                                                   F_D['Rotation'], zoom )   
-        
+        print(F_D)
         ###################### part b ###################### 
-        a_coords = calbody[frame]['vec_a']
+        a_coords = calbody['vec_a']
         A_coords = calib_data[frame]['vec_a']
         
         # frame a -> A
         F_A = Calibration_Registration.point_cloud_reg( a_coords, A_coords )     
         # homogenous representation     
         F_A = transforms3d_extend.affines.compose( F_A['Trans'],
-                                                  F_A['Rotation'], zoom )  
+                                                  F_A['Rotation'], zoom )
+        print(F_A)  
         
         ###################### part c ###################### 
-        c_coords = [np.append( c, 1 ) for c in calbody[frame]['vec_c']]
-        F_C = transforms3d_extend.inverse_transform44( F_D ) * F_A 
+        # convert c coordinates to homogenous vectors
+        c_coords = [np.append( c, 1 ) for c in calbody['vec_c']]
+        F_C = transforms3d_extend.inverse_transform44( F_D ).dot(F_A) 
         
-        C_expected = [F_C * c for c in c_coords]
+        # compute C_expected in homogenous then down-convert to 3
+        C_expected = [F_C.dot(c)[:3] for c in c_coords]
         
         C_expected_frames.append( C_expected )
 
     # for
 
-        
     ###################### part d ###################### 
     # write the output file for C_expected
     with open( outfile, 'w+' ) as writestream:
-        writestream.write("{0}, {1}, {2}\n".format(len(calbody['frame1'],
+        writestream.write("{0}, {1}, {2}\n".format(len(calib_data['frame1']),
                                                    len(frames),
-                                                   outfile))) # first line
+                                                   outfile)) # first line
         
+        writestream.write("0, 0, 0\n0, 0, 0\n") # write place-holders for 
+                                                # post position
         # write the C_expected values 
         for C_expected in C_expected_frames:
             for c in C_expected:
                 writestream.write("{0:.2f}, {1:.2f}, {2:.2f}\n".format(*c))
-        
+                
+            #for
+        #for
     # with
     
     return C_expected_frames
@@ -96,4 +113,8 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
 
 
 if __name__ == '__main__':
-    pass
+    calbody = "../pa1-2_data/pa1-debug-a-calbody.txt"
+    calreadings = "../pa1-2_data/pa1-debug-a-calreadings.txt"
+    
+    compute_Cexpected(calbody, calreadings)
+    print('Completed')

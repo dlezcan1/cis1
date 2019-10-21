@@ -20,12 +20,14 @@ def inverse_transform44(matrix: np.ndarray):
        @return: a 4x4 matrix representing the inverse of the input rigid transformation
     
     """
-    if matrix.size() != (4,4):
+    print(matrix.shape)
+    if matrix.shape != (4,4):
         raise IndexError("The size of 'matrix' is not 4x4.")
+    
     T, R, Z, S = affines.decompose44(matrix)
     Rinv = np.transpose(R)
-    Tinv = -Rinv*T
+    Tinv = -Rinv.dot(T)
     
-    return affines.compose(Rinv, Tinv, Z, S)
+    return affines.compose(Tinv, Rinv, Z, S)
 
 #inverse_transform44

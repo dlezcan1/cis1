@@ -3,6 +3,8 @@ Created on Oct 17, 2019
 
 @author: Dimitri Lezcano and Hyunwoo Song
 
+@name: Calibration_Registration
+
 @summary: This module is to provide python functions of calibration and 
           registration for computer-integrated surgical interventions.
 '''
@@ -71,7 +73,8 @@ def point_cloud_reg( a, b ):
 
     # Calculate translation
     p = mean_b - np.multiply( R, mean_a )
-
+    p = mean_b - R.dot(mean_a) # dimitri edited this for proper matrix multiplication
+    
     F = {'Rotation': R, 'Trans': p}
     return F
 
@@ -92,6 +95,8 @@ def pointer_calibration( transformation_list: list ):
     -> (R_j,p_j) is the j-th transformation of the pivot
     -> p_ptr     is the vector of the pointer posistion relative to the tracker
     -> p_post    is the vector position of the post. 
+    
+    @author: Dimitri Lezcano
       
     @param transformation_list: A list of the different transformation matrices 
                                 from the pivot calibration
@@ -131,6 +136,8 @@ def pointer_calibration( transformation_list: list ):
 def _debug_pivot_calib():
     """ Method to test the current pivot calibration method 
         DO NOT USE! WE CAN TEST LATER ON!
+        
+        @author: Dimitri Lezcano
         
     """
     empivot_datafiles = glob.glob( '../pa1-2_data/pa1-debug*empivot.txt' )

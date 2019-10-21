@@ -9,7 +9,7 @@ DEFAULT_DIR = "../pa1-2_data/"
 
 def open_calbody(file_name):
     tmp = np.empty([1,3])
-    with open(file_name,"r") as filestream: # made more general by Dimitri Lezcano
+    with open(file_name,"r") as filestream: 
         for line in filestream:
             currentline = line.split(",")
             tmpArray = [float(currentline[0]), float(currentline[1]), float(currentline[2])]
@@ -30,7 +30,7 @@ def open_calbody(file_name):
 
 def open_calreadings(file_name): 
     tmp = np.empty([1,3])
-    with open(file_name,"r") as filestream: # made more general by Dimitri Lezcano
+    with open(file_name,"r") as filestream: 
         lines = filestream.read().split('\n')
         N_D, N_A, N_C, N_frame, file_name = lines[0].split(',')
         for lIdx in range(1,len(lines)-1):
@@ -61,6 +61,8 @@ def open_calreadings(file_name):
 def open_empivot(filename: str):
     """ A function that reads in the the data from an empivot.txt data file and returns
         a dictionary of the frames from the EM markers.
+        
+        @author: Dimitri Lezcano
         
         @param filename: string of the 'empivot' filename to be read
         
@@ -100,6 +102,8 @@ def open_empivot(filename: str):
 def open_optpivot(filename: str):
     """ A function that reads in the the data from an optpivot.txt data file and returns
         two dictionaries of  the frames fo each of the optical and EM trackers.
+        
+        @author: Dimitri Lezcano
         
         @param filename: string of the 'optpivot' filename to be read
         
