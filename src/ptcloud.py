@@ -1,18 +1,13 @@
 """ This file is about 3d point set to 3d point set registration algorithm"""
-
 import sys
 import numpy as np
+import open_files
 
-points_a = open("pa1-debug-a-calbody.txt", "r")
-#print(points_a.read())
+file_a = 'pa1-debug-a-'
 
-while True:
-    line = points_a.readlines()
-    if not line: break
-    #print(line)
-points_a.close()
+calbody = open_files.open_calbody(file_a)
+print(calbody)
 
-tmp = np.genfromtxt('pa1-debug-a-calbody.txt', encoding='ascii', dtype=None, skip_header=1)
-print(tmp)
-print(tmp[1][0])
-print(tmp[1][2])
+calreadings = open_files.open_calreadings(file_a)
+print(calreadings)
+
