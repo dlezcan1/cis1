@@ -21,6 +21,8 @@ def point_cloud_reg( a, b ):
 
         b = F a
         Translation vector
+
+        @author: Hyunwoo Song
     """
     mean_a = np.mean( a, axis = 0 )
     mean_b = np.mean( b, axis = 0 )
@@ -72,7 +74,6 @@ def point_cloud_reg( a, b ):
     R = np.array( [[R_00, R_01, R_02], [R_10, R_11, R_12], [R_20, R_21, R_22]] )
 
     # Calculate translation
-    p = mean_b - np.multiply( R, mean_a )
     p = mean_b - R.dot(mean_a) # dimitri edited this for proper matrix multiplication
     
     F = {'Rotation': R, 'Trans': p}
