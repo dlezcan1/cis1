@@ -2,6 +2,13 @@
 Created on Oct 21, 2019
 
 @author: Hyunwoo Song and Dimitri Lezcano
+, 0\n" as these will serve as place-holders for the post position
+        not calculated in this function.
+        
+        i.e. (File name)
+        filename_calbody    = pa1-unknown-c-calbody.txt
+        filename_calreading = pa1-unknown-c-calreadings.txt
+        output filename     = pa1-unknown-c-output1.txt
 
 @summary: This module is to answer the Programming Assignment 1's specific
           questions. 
@@ -21,14 +28,7 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
         
         This function will write a file, of the same file format as 
         the output1 files provided, with the 2nd and third rows as 
-        "0, 0, 0\n" as these will serve as place-holders for the post position
-        not calculated in this function.
-        
-        i.e. (File name)
-        filename_calbody    = pa1-unknown-c-calbody.txt
-        filename_calreading = pa1-unknown-c-calreadings.txt
-        output filename     = pa1-unknown-c-output1.txt
-
+        "0, 0
         @author: Dimitri Lezcano    
     
         @param filename_calbody:    takes a string of the file name for 
@@ -66,7 +66,7 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
         # homogenous representation  
         F_D = transforms3d_extend.affines.compose( F_D['Trans'],
                                                   F_D['Rotation'], zoom )   
-        print(F_D)
+#         print(F_D)
         ###################### part b ###################### 
         a_coords = calbody['vec_a']
         A_coords = calib_data[frame]['vec_a']
@@ -76,7 +76,7 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
         # homogenous representation     
         F_A = transforms3d_extend.affines.compose( F_A['Trans'],
                                                   F_A['Rotation'], zoom )
-        print(F_A)  
+#         print(F_A)  
         
         ###################### part c ###################### 
         # convert c coordinates to homogenous vectors
@@ -93,9 +93,10 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
     ###################### part d ###################### 
     # write the output file for C_expected
     with open( outfile, 'w+' ) as writestream:
+        outname = outfile.split('/')[-1]        # remove the path part
         writestream.write("{0}, {1}, {2}\n".format(len(calib_data['frame1']),
                                                    len(frames),
-                                                   outfile)) # first line
+                                                   outname)) # first line
         
         writestream.write("0, 0, 0\n0, 0, 0\n") # write place-holders for 
                                                 # post position
@@ -107,6 +108,7 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
             #for
         #for
     # with
+    print("File {}: saved.".format(outfile))
     
     return C_expected_frames
     

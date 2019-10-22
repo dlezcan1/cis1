@@ -20,7 +20,6 @@ def inverse_transform44(matrix: np.ndarray):
        @return: a 4x4 matrix representing the inverse of the input rigid transformation
     
     """
-    print(matrix.shape)
     if matrix.shape != (4,4):
         raise IndexError("The size of 'matrix' is not 4x4.")
     
