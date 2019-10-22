@@ -4,7 +4,6 @@
 import sys
 import numpy as np
 
-# DEFAULT_DIR = "/Users/songhyunwoo/Documents/JohnsHopkins/2019 Fall_Local/Computer Integrated Surgery/Programming1_2/PA 1-2 Student Data/"
 DEFAULT_DIR = "../pa1-2_data/"
 
 def open_calbody(file_name):
@@ -94,7 +93,6 @@ def open_empivot(filename: str):
         # for
         
     # with 
-    
     return empivot
             
 # open_empivot
