@@ -27,7 +27,7 @@ def point_cloud_reg(a, b):
     """
     mean_a = np.mean(a, axis=0)
     mean_b = np.mean(b, axis=0)
-
+    
     # Compute for mean and subtract from a, b, respectively
     a_hat = a - mean_a
     b_hat = b - mean_b
@@ -73,10 +73,11 @@ def point_cloud_reg(a, b):
     R_22 = q[0] ** 2 - q[1] ** 2 - q[2] ** 2 + q[3] ** 2
 
     R = np.array([[R_00, R_01, R_02], [R_10, R_11, R_12], [R_20, R_21, R_22]])
-
+#     R1 = transforms3d_extend.quaternions.quat2mat(q) # works the same as above
+    
     # Calculate translation
 
-    p = mean_b - R.dot(mean_a) # dimitri edited this for proper matrix multiplication
+    p = mean_b - R.dot(mean_a) 
     
     F = {'Rotation': R, 'Trans': p}
     return F
@@ -156,14 +157,12 @@ def _debug_point_cloud():
     print(F)
     print()
     
-    print(25 * '=', 'EASY', 28 * '=')
+    print(25 * '=', 'TEST', 25 * '=')
     R = transformations.rotation_matrix(np.pi / 2, [1, 0, 0])[:3, :3]
     t = np.array([1, 2, 3])
     print("R:\n", R)
     a = np.eye(3)
-    print(R.dot(a))
     b = R.dot(a) + t
-    print(b)
     
     F = point_cloud_reg(a, b)
     print("Point Cloud R:\n", F['Rotation'])
@@ -173,7 +172,11 @@ def _debug_point_cloud():
     print("Rotation close:", str(np.allclose(R, F['Rotation'])))
     print("Translations close:", str(np.allclose(t, F['Trans'])))
     
-    print("R.I + t")
+    print("R.I + t:")
+    print(b)
+    
+    print("R_pt.I + T:")
+    print(F["Rotation"].dot(a) + F["Trans"])
     
 # _debug_point_cloud
 

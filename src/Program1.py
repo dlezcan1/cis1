@@ -79,11 +79,11 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
 #         print(F_A)  
         
         ###################### part c ###################### 
-        # convert c coordinates to homogenous vectors
+        # convert c coordinates to homogeneous vectors
         c_coords = [np.append( c, 1 ) for c in calbody['vec_c']]
         F_C = transforms3d_extend.inverse_transform44( F_D ).dot(F_A) 
         
-        # compute C_expected in homogenous then down-convert to 3
+        # compute C_expected in homogeneous then down-convert to 3
         C_expected = [F_C.dot(c)[:3] for c in c_coords]
         
         C_expected_frames.append( C_expected )
