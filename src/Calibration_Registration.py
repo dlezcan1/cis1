@@ -161,7 +161,9 @@ def _debug_point_cloud():
     t = np.array([1, 2, 3])
     print("R:\n", R)
     a = np.eye(3)
+    print(R.dot(a))
     b = R.dot(a) + t
+    print(b)
     
     F = point_cloud_reg(a, b)
     print("Point Cloud R:\n", F['Rotation'])
@@ -170,6 +172,8 @@ def _debug_point_cloud():
     print("Point cloud t:\n", F["Trans"])
     print("Rotation close:", str(np.allclose(R, F['Rotation'])))
     print("Translations close:", str(np.allclose(t, F['Trans'])))
+    
+    print("R.I + t")
     
 # _debug_point_cloud
 
