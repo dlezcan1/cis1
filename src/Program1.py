@@ -128,23 +128,27 @@ def compute_DimplePos(filename_empivot : str):
     frames = empivot.keys()
     N_frames = len(frames)
     
-    #### a ####
+    ################## a ################
     # use first frame of pivot calibration data to define a local "probe" coordinate system
     G_first = empivot['frame1']
     G_zero = np.sum(G_first, axis=0)/float(N_frames)
     g_j = G_first - G_zero
     
-    #### b ####
-    # for each frame, compute transformation of F_G[k]
-    Trans_empivot = {}
+    Trans_empivot = []
+    zoom = np.ones(3) # for frame composition
     for frame in frames:
+        ################## b ################
+        # for each frame, compute transformation of F_G[k]
         G = empivot[frame]
+        # frame transformation [g_j -> G]
         F_G = Calibration_Registration.point_cloud_reg(g_j, G)
-        Trans_empivot[frame] = F_G
+        # homogenous representation
+        F_G = transforms3d_extend.affines.compose( F_G['Trans'],
+                                                  F_G['Rotation'], zoom)
+        Trans_empivot.append(F_G)
 
-    print(Trans_empivot)
-
-    #### c ####
+    # pivot calibration
+    t_G, p_post = Calibration_Registration.pointer_calibration(Trans_empivot)
     
     
     Dimple_positions = 1
