@@ -73,6 +73,11 @@ def point_cloud_reg(a, b):
     R_22 = q[0] ** 2 - q[1] ** 2 - q[2] ** 2 + q[3] ** 2
 
     R = np.array([[R_00, R_01, R_02], [R_10, R_11, R_12], [R_20, R_21, R_22]])
+    R_pack = transforms3d_extend.quaternions.quat2mat(q)
+    print("R: \n", R)
+    print("R_pack: \n", R_pack)
+    print("R - R_pack: \n", R-R_pack)
+    print("R equals R_pack? ", np.array_equal(R, R_pack))
 
     # Calculate translation
 
@@ -153,7 +158,12 @@ def _debug_point_cloud():
     print("Calreadings:\n", calreadings['frame1']['vec_a'])
     
     F = point_cloud_reg(calbody['vec_a'], calreadings['frame1']['vec_a'])
-    print(F)
+    print("F: \n",F)
+
+    b_calc = np.dot(calbody['vec_a'], F['Rotation']) + F['Trans']
+    print("b_origin: \n", calreadings['frame1']['vec_a'])
+    print("b_calc: \n", b_calc)
+    print("b_origin equals b_calc?", np.array_equal(calreadings['frame1']['vec_a'], b_calc))
     print()
     
     print(25 * '=', 'EASY', 28 * '=')
