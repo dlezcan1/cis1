@@ -110,7 +110,7 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
     # with
     print("File {}: saved.".format(outfile))
     
-    return C_expected_frames, outfile
+    return C_expected_frames, outfile # Hyunwoo added the return parameter
     
 
 # Calculate the position of dimple
