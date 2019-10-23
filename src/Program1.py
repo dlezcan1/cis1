@@ -115,7 +115,23 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
 
 # Calculate the position of dimple
 def compute_DimplePos(filename_empivot : str):
-    """ This file
+    """ This function returns the calibrated position of the dimple. 
+        This function is for problem 5.
+        
+            The function use first frame of pivot data to define local 
+        position and use this to compute g, relative position to the midpoint of
+        markers. Then it uses point cloud function to calculate the transformation
+        between g and the read data G.
+            After getting the transformation at each frame, we calibrate the position
+        of the position of the dimple using least-square method.
+
+        @author: Hyunwoo Song    
+    
+        @param filename_empivot:    takes a string of the file name for 
+                                    the EM markers reading 
+        
+        @return: p_post, the calibrated position of the dimple
+
     """
     # attain the metadata from filename
     name_pattern = r'pa(.)-(debug|unknown)-(.)-empivot.txt'
@@ -149,18 +165,17 @@ def compute_DimplePos(filename_empivot : str):
                                                   F_G['Rotation'], zoom)
         Trans_empivot.append(F_G)
 
+    ############## c ################
     # pivot calibration
     t_G, p_post = Calibration_Registration.pointer_calibration(Trans_empivot)
-    
-    
-    Dimple_positions = 1
-    return Dimple_positions
 
+    return p_post
 
 if __name__ == '__main__':
     calbody = "../pa1-2_data/pa1-debug-a-calbody.txt"
     calreadings = "../pa1-2_data/pa1-debug-a-calreadings.txt"
     empivot = "../pa1-2_data/pa1-debug-a-empivot.txt"
     
-    compute_DimplePos(empivot)
+    dimple_pos = compute_DimplePos(empivot)
+    print(dimple_pos)
     print('Completed')

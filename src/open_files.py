@@ -59,7 +59,7 @@ def open_calbody_npfloat(file_name):
     with open(file_name,"r") as filestream: 
         for line in filestream:
             currentline = line.split(",")
-            tmpArray = np.float32([currentline[0], currentline[1], currentline[2]])
+            tmpArray = np.float64([currentline[0], currentline[1], currentline[2]])
             tmp = np.vstack((tmp, tmpArray))
     
     tmp = np.delete(tmp, 0,0)
@@ -82,7 +82,7 @@ def open_calreadings_npfloat(file_name):
         N_D, N_A, N_C, N_frame, file_name = lines[0].split(',')
         for lIdx in range(1,len(lines)-1):
             currentline = lines[lIdx].split(",")
-            tmpArray = np.float32([currentline[0], currentline[1], currentline[2]])
+            tmpArray = np.float64([currentline[0], currentline[1], currentline[2]])
             tmp = np.vstack((tmp, tmpArray))
     
     tmp = np.delete(tmp, 0,0)

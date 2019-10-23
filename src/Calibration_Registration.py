@@ -74,10 +74,12 @@ def point_cloud_reg(a, b):
 
     R = np.array([[R_00, R_01, R_02], [R_10, R_11, R_12], [R_20, R_21, R_22]])
     R_pack = transforms3d_extend.quaternions.quat2mat(q)
-    print("R: \n", R)
-    print("R_pack: \n", R_pack)
-    print("R - R_pack: \n", R-R_pack)
-    print("R equals R_pack? ", np.array_equal(R, R_pack))
+
+    ##### for debug
+    #print("R: \n", R)
+    #print("R_pack: \n", R_pack)
+    #print("R - R_pack: \n", R-R_pack)
+    #print("R equals R_pack? ", np.array_equal(R, R_pack))
 
     # Calculate translation
 
