@@ -73,8 +73,14 @@ def point_cloud_reg(a, b):
     R_22 = q[0] ** 2 - q[1] ** 2 - q[2] ** 2 + q[3] ** 2
 
     R = np.array([[R_00, R_01, R_02], [R_10, R_11, R_12], [R_20, R_21, R_22]])
-#     R1 = transforms3d_extend.quaternions.quat2mat(q) # works the same as above
-    
+    R_pack = transforms3d_extend.quaternions.quat2mat(q)
+
+    ##### for debug
+    #print("R: \n", R)
+    #print("R_pack: \n", R_pack)
+    #print("R - R_pack: \n", R-R_pack)
+    #print("R equals R_pack? ", np.array_equal(R, R_pack))
+
     # Calculate translation
 
     p = mean_b - R.dot(mean_a) 
@@ -147,14 +153,28 @@ def _debug_point_cloud():
     print(20 * '=', 'Functionality Check', 20 * '=')
     file_a_calbody = '../pa1-2_data/pa1-debug-a-calbody.txt'
     calbody = open_files.open_calbody(file_a_calbody)
+    print("data type: ", calbody['vec_a'].dtype)
+    # numpy float64
+    #calbody = open_files.open_calbody_npfloat(file_a_calbody)
+    
+    print("data type: ", calbody['vec_a'].dtype)
     print("Calbody:\n", calbody['vec_a'])
     
     file_a_calreadings = '../pa1-2_data/pa1-debug-a-calreadings.txt'
     calreadings = open_files.open_calreadings(file_a_calreadings)
+    # numpy float 64
+    #calreadings = open_files.open_calreadings_npfloat(file_a_calreadings)
+
+    print("data type: ", calreadings['frame1']['vec_a'].dtype)
     print("Calreadings:\n", calreadings['frame1']['vec_a'])
     
     F = point_cloud_reg(calbody['vec_a'], calreadings['frame1']['vec_a'])
-    print(F)
+    print("F: \n",F)
+
+    b_calc = np.dot(calbody['vec_a'], F['Rotation']) + F['Trans']
+    print("b_origin: \n", calreadings['frame1']['vec_a'])
+    print("b_calc: \n", b_calc)
+    print("b_origin equals b_calc?", np.array_equal(calreadings['frame1']['vec_a'], b_calc))
     print()
     
     print(25 * '=', 'TEST', 25 * '=')

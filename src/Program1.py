@@ -132,7 +132,7 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
                                                    len( frames ),
                                                    outname ) )  # first line
         
-        writestream.write( "0, 0, 0\n0, 0, 0\n" )  # write place-holders for 
+        #writestream.write("0, 0, 0\n0, 0, 0\n") # write place-holders for 
                                                 # post position
         # write the C_expected values 
         for C_expected in C_expected_frames:
@@ -148,18 +148,30 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
 
 #    
 
+# Calculate the position of dimple
+def compute_DimplePos(filename_empivot : str):
+    """ This function returns the calibrated position of the dimple. 
+        This function is for problem 5.
+        
+            The function use first frame of pivot data to define local 
+        position and use this to compute g, relative position to the midpoint of
+        markers. Then it uses point cloud function to calculate the transformation
+        between g and the read data G.
+            After getting the transformation at each frame, we calibrate the position
+        of the position of the dimple using least-square method.
 
-# Calculate the position of dimple for empivot (problem 5)
-def compute_DimplePos( filename_empivot : str ):
-    """ This file
+        @author: Hyunwoo Song    
+    
+        @param filename_empivot:    takes a string of the file name for 
+                                    the EM markers reading 
+        
+        @return: p_post, the calibrated position of the dimple
+
     """
     # attain the metadata from filename
     name_pattern = r'pa(.)-(debug|unknown)-(.)-empivot.txt'
-    res_pattern = re.search( name_pattern, filename_empivot )
-    assign_num, data_type, letter = res_pattern.groups()
-    outfile = "../pa{0}_results/pa{0}-{1}-{2}-output{0}.txt".format( assign_num,
-                                                                    data_type,
-                                                                    letter )
+    res_calbody = re.search( name_pattern, filename_empivot )
+    assign_num, data_type, letter = res_calbody.groups()
     
     # open empivot file
     empivot = open_files.open_empivot( filename_empivot )
@@ -169,7 +181,7 @@ def compute_DimplePos( filename_empivot : str ):
     ################## a ################
     # use first frame of pivot calibration data to define a local "probe" coordinate system
     G_first = empivot['frame1']
-    G_zero = np.sum( G_first, axis = 0 ) / float( N_frames )
+    G_zero = np.mean(G_first, axis = 0)
     g_j = G_first - G_zero
     
     Trans_empivot = []
@@ -185,13 +197,14 @@ def compute_DimplePos( filename_empivot : str ):
                                                   F_G['Rotation'], zoom )
         Trans_empivot.append( F_G )
 
+    ############## c ################
     # pivot calibration
     t_G, p_post = Calibration_Registration.pointer_calibration( Trans_empivot )
     
     Dimple_positions = 1
     return Dimple_positions  # return p_post here?
 
-# comptue_Dimplepos
+# compute_Dimplepos
 
 
 # calculate the dimple position given optpivot (Problem 6) 
@@ -311,19 +324,57 @@ def combine_postdata_tofile( filename: str, em_post: np.ndarray, opt_post: np.nd
     
 # combine_postdata_tofile
 
+    return p_post
+
+def write_data(outfile, EM_probe_pos, OPT_probe_pos):
+    """ This function writes the calculated data to output.txt
+        From the .txt file written at the comput_Cexpected function,
+        this function overwrites the EM_probe_pos and OPT_probe_pos
+    """
+    line_idx = 1
+    lines = None
+    insertline_em = "{0:.2f}, {1: .2f}, {2: .2f}".format(*EM_probe_pos)
+    insertline_opt = "{0: .2f}, {1: .2f}, {2: .2f}".format(*OPT_probe_pos)
+    #insertline_em = ", ".join(str(x) for x in EM_probe_pos)
+    #insertline_opt = ", ".join(str(x) for x in OPT_probe_pos)
+    insertline = "\n".join([insertline_em, insertline_opt]) + "\n"
+
+    with open(outfile, 'r') as resultstream:
+        outname = outfile.split('/')[-1]
+        lines = resultstream.readlines()
+
+    lines.insert(line_idx, insertline)
+
+    with open(outfile, 'w+') as resultstream:
+        resultstream.writelines(lines)
+    
+    print("Result file saved >>> [ ", outname, "]")
+    return 0
 
 if __name__ == '__main__':
-    calbody = "../pa1-2_data/pa1-debug-a-calbody.txt"
-    calreadings = "../pa1-2_data/pa1-debug-a-calreadings.txt"
-    empivot = "../pa1-2_data/pa1-debug-a-empivot.txt"
+    calbody_list = sorted(glob.glob("../pa1-2_data/*pa1*calbody.txt"))
+    calreading_list = sorted(glob.glob("../pa1-2_data/*pa1*calreadings.txt"))
+    empivot_list = sorted(glob.glob("../pa1-2_data/*pa1*empivot.txt"))
+    optpivot_list = sorted(glob.glob("../pa1-2_data/*pa1*optpivot.txt"))
+ 
     
-    compute_DimplePos( empivot )
     
-    print( 20 * '=', "FUNCTIONALITY TEST: WRITE FILE", 20 * '=' )
-    _, filename = compute_Cexpected( calbody, calreadings )
-    em_test = np.array( [1.362, 1.457, 1.632] )
-    opt_test = np.array( [2.456, 2.678, 2.891] )
-    
-    combine_postdata_tofile( filename, em_test, opt_test )
-    
-    print( 'Completed' )
+    for calbody, calreadings, empivot, optpivot in zip(calbody_list,
+                                                       calreading_list,
+                                                       empivot_list,
+                                                       optpivot_list):
+        
+        name_pattern = r'pa1-(debug|unknown)-(.)-calbody.txt'
+        res_calbody = re.search( name_pattern, calbody )
+        _, letter = res_calbody.groups()
+        print("Data set: ", letter)
+        # compute C_expected (P4)
+        C_expected, outfile = compute_Cexpected(calbody, calreadings)
+        # compue em probe position (P5)
+        EM_probe_pos = compute_DimplePos(empivot)
+        # compute opt probe position (P6)
+
+        # write the result
+        write_data(outfile, EM_probe_pos, [0, 0, 0])
+
+        print('Completed')
