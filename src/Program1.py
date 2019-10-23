@@ -188,20 +188,33 @@ def write_data(outfile, EM_probe_pos, OPT_probe_pos):
     with open(outfile, 'w+') as resultstream:
         resultstream.writelines(lines)
     
+    print("Result file saved >>> [ ", outname, "]")
     return 0
 
 if __name__ == '__main__':
-    calbody = "../pa1-2_data/pa1-debug-a-calbody.txt"
-    calreadings = "../pa1-2_data/pa1-debug-a-calreadings.txt"
-    empivot = "../pa1-2_data/pa1-debug-a-empivot.txt"
+    calbody_list = sorted(glob.glob("../pa1-2_data/*pa1*calbody.txt"))
+    calreading_list = sorted(glob.glob("../pa1-2_data/*pa1*calreadings.txt"))
+    empivot_list = sorted(glob.glob("../pa1-2_data/*pa1*empivot.txt"))
+    optpivot_list = sorted(glob.glob("../pa1-2_data/*pa1*optpivot.txt"))
+ 
     
-    print("Compute C_expected")
-    C_expected, outfile = compute_Cexpected(calbody, calreadings)
+    
+    for calbody, calreadings, empivot, optpivot in zip(calbody_list,
+                                                       calreading_list,
+                                                       empivot_list,
+                                                       optpivot_list):
+        
+        name_pattern = r'pa1-(debug|unknown)-(.)-calbody.txt'
+        res_calbody = re.search( name_pattern, calbody )
+        _, letter = res_calbody.groups()
+        print("Data set: ", letter)
+        # compute C_expected (P4)
+        C_expected, outfile = compute_Cexpected(calbody, calreadings)
+        # compue em probe position (P5)
+        EM_probe_pos = compute_DimplePos(empivot)
+        # compute opt probe position (P6)
 
-    print("Compute_EM probe position")
-    EM_probe_pos = compute_DimplePos(empivot)
+        # write the result
+        write_data(outfile, EM_probe_pos, [0, 0, 0])
 
-    # write result .txt
-    write_data(outfile, EM_probe_pos, [0, 0, 0])
-
-    print('Completed')
+        print('Completed')
