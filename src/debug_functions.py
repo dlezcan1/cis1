@@ -24,7 +24,6 @@ def debug_point_cloud_reg():
     
     F = cr.point_cloud_reg(a, b)
     b_fit = np.array([F['Rotation'].dot(ai) + F['Trans'] for ai in a])
-    
     error_R = np.round(np.abs(R-F['Rotation']),2)
     error_p = np.round(np.abs(p-F['Trans']),2)
     error_b = np.round(np.abs(b - b_fit),2)
@@ -55,9 +54,44 @@ def debug_point_cloud_reg():
     
 # debug_point_cloud_reg
 
+def debug_calibration():
+    print(25*"=", "Random pointer, post position", 25*"=")
+    p_ptr = np.random.randn(3)
+    p_post = np.random.randn(3)
+    
+    print("p_ptr: \n", p_ptr)
+    print("p_post: \n", p_post)
+    print()
+    no_mat = 10
+    print("Random rotation matrix generated: ", no_mat)
+    print()
+    F_G = []
+    for mIdx in range(no_mat):
+        tmp_rot = np.random.rand(3,3)
+        tmp_trans = p_post - tmp_rot.dot(p_ptr)
+        F_tmp = tf3e.affines.compose(tmp_trans, tmp_rot, np.ones(3))
+        F_G.append(F_tmp)
+    #print("F_G: \n", F_G)
+    
+    print(25*"=", "Calibration functionality check", 25*"=")
+    p_ptr_cali, p_post_cali = cr.pointer_calibration(F_G)
+    print("p_ptr_cali: \n", p_ptr_cali)
+    print("p_post_cali: \n", p_post_cali)
+    print()
+
+    print(25*"=", "Debug result", 25*"=")
+    print("pointer diff: ", p_ptr - p_ptr_cali)
+    print("equal? ", np.array_equal(p_ptr, p_ptr_cali))
+    print("post diff: ", p_post - p_post_cali)
+    print("equal? ", np.array_equal(p_post, p_post_cali))
+          
+    
+        
+    
 
 if __name__ == '__main__':
-    debug_point_cloud_reg()
+    #debug_point_cloud_reg()
+    debug_calibration()
     
 # if
     
