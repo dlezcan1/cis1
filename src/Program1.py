@@ -133,7 +133,7 @@ def compute_DimplePos(filename_empivot : str):
     ################## a ################
     # use first frame of pivot calibration data to define a local "probe" coordinate system
     G_first = empivot['frame1']
-    G_zero = np.sum(G_first, axis=0)/float(N_frames)
+    G_zero = np.mean(G_first, axis = 0)
     g_j = G_first - G_zero
     
     Trans_empivot = []
