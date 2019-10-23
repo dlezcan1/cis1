@@ -194,7 +194,7 @@ def compute_DimplePos( filename_empivot : str ):
 # comptue_Dimplepos
 
 
-# calculate the dimple position given optpivot (Problem 6 
+# calculate the dimple position given optpivot (Problem 6) 
 def perform_optical_pivot( optpivot_file: str ):
     """ This function reads in the optical pivot data file to perform
         the pivot calibration on the optical tracked pointer.
@@ -207,9 +207,10 @@ def perform_optical_pivot( optpivot_file: str ):
                                 of the corresponding optical pivot
                                 data file.
                                
-        @return: 
+        @return: the 3-D vector of the optical pointer's position, t_h.
         
-        @return: 
+        @return: the 3-D vector of the optical pivot calibration point 
+                 position.
     
     """
     # attain the metadata from filename
@@ -229,19 +230,40 @@ def perform_optical_pivot( optpivot_file: str ):
     N_frames = len( frames )
     
     # get the d coordinates
+    Hzero = np.mean( H['frame1'], axis = 0 )
     d_coords = calbody['vec_d']
+    transform_list = []
     for frame in frames:
         ################## get F_D ##################  
         D_coords = em_data[frame]
         F_D = Calibration_Registration.point_cloud_reg( d_coords, D_coords )
+        F_D = transforms3d_extend.affines.compose(F_D['Trans'], F_D['Rotation'],
+                                                  np.ones(3))
+        invF_D = transforms3d_extend.inverse_transform44(F_D)
         
-        ################## compute F_D.H ################## 
+        ################## compute invF_D.H ################## 
         # homogeneous rep.
         H_coords = [np.append( H_j, 1 ) for H_j in optpivot[frame]]
-        d_H_coords = np.array( [F_D.dot( H_j )[:3] for H_j in H_coords] )
+        d_H_coords = np.array( [invF_D.dot( H_j )[:3] for j_j in H_coords] )
         
+        h_coords = [np.append( H_j - Hzero, 1 ) for H_j in optpivot[frame]]
+        d_h_coords = np.array( [invF_D.dot( h_j )[:3] for j_j in h_coords] )
         
+        ######### compute frame transform for d_h_i -> d_H_i ######### 
+        ################### F_D H_j = F_k F_D h_j ####################
+        transform_frame = Calibration_Registration.point_cloud_reg(d_h_coords, d_H_coords)
+        transform44_frame = transforms3d_extend.affines.compose(transform_frame['Trans'],
+                                                                transform_frame['Rotation'],
+                                                                np.ones(3))
+        # add 4x4 transformation to list for pivot calibration
+        transform_list.append(transform44_frame)
+         
     # for 
+    
+    # perform pivot calibration
+    t_h, t_post = Calibration_Registration.pointer_calibration(transform_list)
+    
+    return t_h, t_post
 
 # perform_optical pivot
 
