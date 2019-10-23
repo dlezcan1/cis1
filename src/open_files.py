@@ -1,7 +1,7 @@
 """ Open data files
     The output format is dictionary
 """
-import sys
+# import sys # unused
 import numpy as np
 
 DEFAULT_DIR = "../pa1-2_data/"
@@ -55,6 +55,9 @@ def open_calreadings( file_name ):
         calreadings['frame' + str( fIdx + 1 )] = tmpDict
 
     return calreadings
+
+# open_calreadings
+
 #########################
 def open_calbody_npfloat(file_name):
     tmp = np.empty([1,3])
@@ -75,7 +78,7 @@ def open_calbody_npfloat(file_name):
 
     return calbody
 
-# open_calbody
+# open_calbody_npfloat
 
 def open_calreadings_npfloat(file_name): 
     tmp = np.empty([1,3])
@@ -105,7 +108,7 @@ def open_calreadings_npfloat(file_name):
     return calreadings
 
 #########################
-# open_calreadings
+# open_calreadings_npfloat
 
 
 def open_empivot( filename: str ):
@@ -199,6 +202,6 @@ def open_optpivot( filename: str ):
         
     # with 
     
-    return [optpivot, empivot]
+    return [optpivot, em_data]
             
 # open_optpivot
