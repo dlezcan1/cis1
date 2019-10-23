@@ -175,8 +175,8 @@ def write_data(outfile, EM_probe_pos, OPT_probe_pos):
     """
     line_idx = 1
     lines = None
-    insertline_em = " ".join(str(x) for x in EM_probe_pos)
-    insertline_opt = " ".join(str(x) for x in OPT_probe_pos)
+    insertline_em = ", ".join(str(x) for x in EM_probe_pos)
+    insertline_opt = ", ".join(str(x) for x in OPT_probe_pos)
     insertline = "\n".join([insertline_em, insertline_opt]) + "\n"
 
     with open(outfile, 'r') as resultstream:
@@ -197,8 +197,11 @@ if __name__ == '__main__':
     
     print("Compute C_expected")
     C_expected, outfile = compute_Cexpected(calbody, calreadings)
+
     print("Compute_EM probe position")
     EM_probe_pos = compute_DimplePos(empivot)
-    print(EM_probe_pos)
+
+    # write result .txt
     write_data(outfile, EM_probe_pos, [0, 0, 0])
+
     print('Completed')
