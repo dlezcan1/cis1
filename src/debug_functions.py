@@ -11,6 +11,7 @@ import numpy as np
 
 def debug_point_cloud_reg():
     q = np.random.randn(4)
+    q = q/np.linalg.norm(q)
     
     R = tf3e.quaternions.quat2mat(q)
     
