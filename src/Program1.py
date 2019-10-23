@@ -209,22 +209,24 @@ def perform_optical_pivot( filename_calbody: str, filename_optpivot: str ):
     
     # get the d coordinates
     Hzero = np.mean( optpivot['frame1'], axis = 0 )
+    h_coords = [np.append( H1_j - Hzero, 1 ) for H1_j in optpivot['frame1']]
     d_coords = calbody['vec_d']
     transform_list = []
+    
     for frame in frames:
         ################## get F_D ##################  
         D_coords = em_data[frame]
         F_D = Calibration_Registration.point_cloud_reg( d_coords, D_coords )
         F_D = transforms3d_extend.affines.compose(F_D['Trans'], F_D['Rotation'],
                                                   np.ones(3))
-        invF_D = transforms3d_extend.inverse_transform44(F_D)
         
         ################## compute invF_D.H ################## 
+        invF_D = transforms3d_extend.inverse_transform44(F_D)
+        
         # homogeneous rep.
         H_coords = [np.append( H_j, 1 ) for H_j in optpivot[frame]]
         d_H_coords = np.array( [invF_D.dot( H_j )[:3] for H_j in H_coords] )
         
-        h_coords = [np.append( H_j - Hzero, 1 ) for H_j in optpivot[frame]]
         d_h_coords = np.array( [invF_D.dot( h_j )[:3] for h_j in h_coords] )
         
         ######### compute frame transform for d_h_i -> d_H_i ######### 
