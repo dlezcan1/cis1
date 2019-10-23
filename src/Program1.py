@@ -175,8 +175,10 @@ def write_data(outfile, EM_probe_pos, OPT_probe_pos):
     """
     line_idx = 1
     lines = None
-    insertline_em = ", ".join(str(x) for x in EM_probe_pos)
-    insertline_opt = ", ".join(str(x) for x in OPT_probe_pos)
+    insertline_em = "{0:.2f}, {1: .2f}, {2: .2f}".format(*EM_probe_pos)
+    insertline_opt = "{0: .2f}, {1: .2f}, {2: .2f}".format(*OPT_probe_pos)
+    #insertline_em = ", ".join(str(x) for x in EM_probe_pos)
+    #insertline_opt = ", ".join(str(x) for x in OPT_probe_pos)
     insertline = "\n".join([insertline_em, insertline_opt]) + "\n"
 
     with open(outfile, 'r') as resultstream:
