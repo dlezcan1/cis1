@@ -98,7 +98,7 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
                                                    len(frames),
                                                    outname)) # first line
         
-        writestream.write("0, 0, 0\n0, 0, 0\n") # write place-holders for 
+        #writestream.write("0, 0, 0\n0, 0, 0\n") # write place-holders for 
                                                 # post position
         # write the C_expected values 
         for C_expected in C_expected_frames:
@@ -110,7 +110,7 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
     # with
     print("File {}: saved.".format(outfile))
     
-    return C_expected_frames
+    return C_expected_frames, outfile
     
 
 # Calculate the position of dimple
@@ -137,9 +137,6 @@ def compute_DimplePos(filename_empivot : str):
     name_pattern = r'pa(.)-(debug|unknown)-(.)-empivot.txt'
     res_calbody = re.search( name_pattern, filename_empivot )
     assign_num, data_type, letter = res_calbody.groups()
-    outfile = "../pa{0}_results/pa{0}-{1}-{2}-output{0}.txt".format( assign_num,
-                                                                    data_type,
-                                                                    letter )
     
     # open empivot file
     empivot = open_files.open_empivot( filename_empivot )
@@ -171,11 +168,37 @@ def compute_DimplePos(filename_empivot : str):
 
     return p_post
 
+def write_data(outfile, EM_probe_pos, OPT_probe_pos):
+    """ This function writes the calculated data to output.txt
+        From the .txt file written at the comput_Cexpected function,
+        this function overwrites the EM_probe_pos and OPT_probe_pos
+    """
+    line_idx = 1
+    lines = None
+    insertline_em = " ".join(str(x) for x in EM_probe_pos)
+    insertline_opt = " ".join(str(x) for x in OPT_probe_pos)
+    insertline = "\n".join([insertline_em, insertline_opt]) + "\n"
+
+    with open(outfile, 'r') as resultstream:
+        outname = outfile.split('/')[-1]
+        lines = resultstream.readlines()
+
+    lines.insert(line_idx, insertline)
+
+    with open(outfile, 'w+') as resultstream:
+        resultstream.writelines(lines)
+    
+    return 0
+
 if __name__ == '__main__':
     calbody = "../pa1-2_data/pa1-debug-a-calbody.txt"
     calreadings = "../pa1-2_data/pa1-debug-a-calreadings.txt"
     empivot = "../pa1-2_data/pa1-debug-a-empivot.txt"
     
-    dimple_pos = compute_DimplePos(empivot)
-    print(dimple_pos)
+    print("Compute C_expected")
+    C_expected, outfile = compute_Cexpected(calbody, calreadings)
+    print("Compute_EM probe position")
+    EM_probe_pos = compute_DimplePos(empivot)
+    print(EM_probe_pos)
+    write_data(outfile, EM_probe_pos, [0, 0, 0])
     print('Completed')
