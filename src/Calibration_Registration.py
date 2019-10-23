@@ -151,10 +151,19 @@ def _debug_point_cloud():
     print(20 * '=', 'Functionality Check', 20 * '=')
     file_a_calbody = '../pa1-2_data/pa1-debug-a-calbody.txt'
     calbody = open_files.open_calbody(file_a_calbody)
+    print("data type: ", calbody['vec_a'].dtype)
+    # numpy float64
+    #calbody = open_files.open_calbody_npfloat(file_a_calbody)
+    
+    print("data type: ", calbody['vec_a'].dtype)
     print("Calbody:\n", calbody['vec_a'])
     
     file_a_calreadings = '../pa1-2_data/pa1-debug-a-calreadings.txt'
     calreadings = open_files.open_calreadings(file_a_calreadings)
+    # numpy float 64
+    #calreadings = open_files.open_calreadings_npfloat(file_a_calreadings)
+
+    print("data type: ", calreadings['frame1']['vec_a'].dtype)
     print("Calreadings:\n", calreadings['frame1']['vec_a'])
     
     F = point_cloud_reg(calbody['vec_a'], calreadings['frame1']['vec_a'])
