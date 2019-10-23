@@ -196,16 +196,10 @@ def perform_optical_pivot( filename_calbody: str, filename_optpivot: str ):
                  position.
     
     """
-    # attain the metadata from filename
-#     name_pattern = r'pa(.)-(debug|unknown)-(.)-optpivot.txt'    # unused
-#     res_pattern = re.search( name_pattern, filename_calbody )   # unused
-#     assign_num, data_type, letter = res_pattern.groups()        # unused
-    
     # open empivot file
     optpivot, em_data = open_files.open_optpivot( filename_optpivot )
     calbody = open_files.open_calbody( filename_calbody )
     frames = optpivot.keys()
-#     N_frames = len( frames )                                    # unused
     
     # get the d coordinates
     Hzero = np.mean( optpivot['frame1'], axis = 0 )
