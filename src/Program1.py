@@ -128,7 +128,7 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
     # write the output file for C_expected
     with open( outfile, 'w+' ) as writestream:
         outname = outfile.split( '/' )[-1]  # remove the path part
-        writestream.write( "{0}, {1}, {2}\n".format( len( calib_data['frame1'] ),
+        writestream.write( "{0}, {1}, {2}\n".format( len( calbody['vec_c']),
                                                    len( frames ),
                                                    outname ) )  # first line
         
