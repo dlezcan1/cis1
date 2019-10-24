@@ -7,7 +7,64 @@ import open_files, Program1  # @UnusedImport
 import Calibration_Registration as cr
 import transforms3d_extend as tf3e  # @UnusedImport
 import numpy as np
+import transformations
 
+def debug_point_cloud():
+    """ Method to test the current point cloud registration 
+        algorithm.
+        
+        @author: Dimitri Lezcano and Hyunwoo Song
+        
+    """
+    print( 20 * '=', 'Functionality Check', 20 * '=' )
+    file_a_calbody = '../pa1-2_data/pa1-debug-a-calbody.txt'
+    calbody = open_files.open_calbody( file_a_calbody )
+    print( "data type: ", calbody['vec_a'].dtype )
+    # numpy float64
+    # calbody = open_files.open_calbody_npfloat(file_a_calbody)
+    
+    print( "data type: ", calbody['vec_a'].dtype )
+    print( "Calbody:\n", calbody['vec_a'] )
+    
+    file_a_calreadings = '../pa1-2_data/pa1-debug-a-calreadings.txt'
+    calreadings = open_files.open_calreadings( file_a_calreadings )
+    # numpy float 64
+    # calreadings = open_files.open_calreadings_npfloat(file_a_calreadings)
+
+    print( "data type: ", calreadings['frame1']['vec_a'].dtype )
+    print( "Calreadings:\n", calreadings['frame1']['vec_a'] )
+    
+    F = cr.point_cloud_reg( calbody['vec_a'], calreadings['frame1']['vec_a'] )
+    print( "F: \n", F )
+
+    b_calc = np.dot( calbody['vec_a'], F['Rotation'] ) + F['Trans']
+    print( "b_origin: \n", calreadings['frame1']['vec_a'] )
+    print( "b_calc: \n", b_calc )
+    print( "b_origin equals b_calc?", np.array_equal( calreadings['frame1']['vec_a'], b_calc ) )
+    print()
+    
+    print( 25 * '=', 'TEST', 25 * '=' )
+    R = transformations.rotation_matrix( np.pi / 2, [1, 0, 0] )[:3, :3]
+    t = np.array( [1, 2, 3] )
+    print( "R:\n", R )
+    a = np.eye( 3 )
+    b = R.dot( a ) + t
+    
+    F = cr.point_cloud_reg( a, b )
+    print( "Point Cloud R:\n", F['Rotation'] )
+    print()
+    print( "t:\n", t )
+    print( "Point cloud t:\n", F["Trans"] )
+    print( "Rotation close:", str( np.allclose( R, F['Rotation'] ) ) )
+    print( "Translations close:", str( np.allclose( t, F['Trans'] ) ) )
+    
+    print( "R.I + t:" )
+    print( b )
+    
+    print( "R_pt.I + T:" )
+    print( F["Rotation"].dot( a ) + F["Trans"] )
+    
+# _debug_point_cloud
 
 def debug_point_cloud_reg():
     q = np.random.randn(4)
@@ -71,7 +128,6 @@ def debug_calibration():
         tmp_trans = p_post - tmp_rot.dot(p_ptr)
         F_tmp = tf3e.affines.compose(tmp_trans, tmp_rot, np.ones(3))
         F_G.append(F_tmp)
-    #print("F_G: \n", F_G)
     
     print(25*"=", "Calibration functionality check", 25*"=")
     p_ptr_cali, p_post_cali = cr.pointer_calibration(F_G)
@@ -85,12 +141,9 @@ def debug_calibration():
     print("post diff: ", p_post - p_post_cali)
     print("equal? ", np.array_equal(p_post, p_post_cali))
           
-    
-        
-    
 
 if __name__ == '__main__':
-    #debug_point_cloud_reg()
+    debug_point_cloud_reg()
     debug_calibration()
     
 # if

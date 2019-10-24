@@ -138,15 +138,9 @@ def compute_DimplePos(filename_empivot : str):
         @return: p_post, the calibrated position of the dimple
 
     """
-    # attain the metadata from filename
-#     name_pattern = r'pa(.)-(debug|unknown)-(.)-empivot.txt'     # unused
-#     res_calbody = re.search( name_pattern, filename_empivot )   # unused
-#     assign_num, data_type, letter = res_calbody.groups()        # unused
-    
     # open empivot file
     empivot = open_files.open_empivot( filename_empivot )
     frames = empivot.keys()
-#     N_frames = len( frames )                                    # unuseds
     
     ################## a ################
     # use first frame of pivot calibration data to define a local "probe" coordinate system
