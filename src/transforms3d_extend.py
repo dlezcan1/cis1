@@ -33,8 +33,11 @@ def inverse_transform44( matrix: np.ndarray ):
 
 
 def skew( vector: np.ndarray ):
-    """ Return the skew-symmetric of the vector.
-    
+    """ A function to return the skew-symmetric of the vector.
+        
+        @param vector: A 3-D vector 
+        
+        @returns: a 3x3 skew-symmetric matrix given the 3-D vector
     """
     
     return np.array( [[0, -vector[2], vector[1]],

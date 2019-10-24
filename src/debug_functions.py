@@ -1,7 +1,10 @@
 '''
 Created on Oct 23, 2019
 
-@author: dlezcan1
+@author: Dimitri Lezcano and Hyunwoo Song
+
+This function provides several methods to debug our program
+that we have built.
 '''
 import open_files, Program1  # @UnusedImport
 import Calibration_Registration as cr
@@ -67,6 +70,11 @@ def debug_point_cloud():
 # _debug_point_cloud
 
 def debug_point_cloud_reg():
+    """ This method is to debug the 'point_cloud_reg' function 
+        in another manner, using random quaternions  and vectors 
+        to generate transformations.
+    """
+    
     q = np.random.randn(4)
     q = q/np.linalg.norm(q)
     
@@ -112,6 +120,10 @@ def debug_point_cloud_reg():
 # debug_point_cloud_reg
 
 def debug_calibration():
+    """ This method is to debug the pivot calibration method,
+        'pointer_calibration'
+    """
+
     print(25*"=", "Random pointer, post position", 25*"=")
     p_ptr = np.random.randn(3)
     p_post = np.random.randn(3)

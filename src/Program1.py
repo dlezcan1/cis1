@@ -239,7 +239,17 @@ def write_data(outfile, EM_probe_pos, OPT_probe_pos):
     """ This function writes the calculated data to output.txt
         From the .txt file written at the comput_Cexpected function,
         this function overwrites the EM_probe_pos and OPT_probe_pos
+        
+        @param outfile:    This is the output filename generated from 
+                           the 'compute_Cexpected' function
+                           
+        @param EM_probe_pos: This is a vector corresponding to the EM
+                             pivot post's position.
+     
+        @param OPT_probe_pos: This is a vector corresponding to the 
+                              optical pivot post's position.
     """
+    
     line_idx = 1
     lines = None
     insertline_em = "{0:.2f}, {1: .2f}, {2: .2f}".format(*EM_probe_pos)

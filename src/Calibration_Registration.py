@@ -30,7 +30,11 @@ def point_cloud_reg( a, b ):
 
         @author: Hyunwoo Song
 
-        @param transformation_list: coordinates of two different 3d systems   
+        @param a: the input, numpy array where the vectors are the rows of the
+                  matrix
+                  
+        @param b: the corresponding output, numpy array where the vectors are
+                  the rows of the matrix
 
         @return: F which is a dictionary consist of 'Ratation' as a rotation
                 matrix and 'Trans' as a translational vector
