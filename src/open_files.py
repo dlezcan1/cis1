@@ -8,6 +8,17 @@ DEFAULT_DIR = "../pa1-2_data/"
 
 
 def open_calbody( file_name ):
+    """ A function that reads in the the data from an calbody.txt data file and returns
+        a dictionary of the positions of the markers on the calibration object.
+        
+        @author: Hyunwoo Song
+        
+        @param filename: string of the 'calbody' filename to be read
+        
+        @return: dictionary of each frame labelled 'vec_d', 'vec_a', 'vec_c'
+                 Each refers to the coordinates of d_i, a_i, c_i.
+        
+    """ 
     tmp = np.empty( [1, 3] )
     with open( file_name, "r" ) as filestream: 
         for line in filestream:
@@ -30,6 +41,17 @@ def open_calbody( file_name ):
 
 
 def open_calreadings( file_name ): 
+    """ A function that reads in the the data from an calreadings.txt data file and returns
+        a dictionary of the frames from the markers' position.
+        
+        @author: Hyunwoo Song
+        
+        @param filename: string of the 'calreadings' filename to be read
+        
+        @return: dictionary of each frame labelled 'frame1', 'frame2', ...
+                 Each frame is a list of the coordinates for D_i, A_i, C_i.
+        
+    """ 
     tmp = np.empty( [1, 3] )
     with open( file_name, "r" ) as filestream: 
         lines = filestream.read().split( '\n' )
@@ -60,6 +82,17 @@ def open_calreadings( file_name ):
 
 #########################
 def open_calbody_npfloat(file_name):
+    """ This function is used to read the data as numpy float 64.
+        The function of this is same as open_calbody
+        
+        @author: Hyunwoo Song
+        
+        @param filename: string of the 'calbody' filename to be read
+        
+        @return: dictionary of each frame labelled 'vec_d', 'vec_a', 'vec_c'
+                 Each refers to the coordinates of d_i, a_i, c_i.
+        
+    """
     tmp = np.empty([1,3])
     with open(file_name,"r") as filestream: 
         for line in filestream:
@@ -80,7 +113,18 @@ def open_calbody_npfloat(file_name):
 
 # open_calbody_npfloat
 
-def open_calreadings_npfloat(file_name): 
+def open_calreadings_npfloat(file_name):  
+    """ This function is used to read the data in numpy float64 format. 
+        The function of this is same as open_calreadings        
+
+        @author: Hyunwoo Song
+        
+        @param filename: string of the 'calreadings' filename to be read
+        
+        @return: dictionary of each frame labelled 'frame1', 'frame2', ...
+                 Each frame is a list of the coordinates for D_i, A_i, C_i.
+        
+    """ 
     tmp = np.empty([1,3])
     with open(file_name,"r") as filestream: 
         lines = filestream.read().split('\n')

@@ -17,13 +17,28 @@ import transformations
 
 
 def point_cloud_reg( a, b ):
-    """ Rotation matrix -> Quaternion method for R
-        Based on p13, "Rigid 3D 3D Calculations"
-
-        b = F a
-        Translation vector
+    """ This function read the two coordinate systems and
+        calculate the point-to-point registration function.
+        This algorithm is explained in class and implemented as taught.
+        The relationship between a, b, and the result ("F") is
+            b = F a
+        Basically, this function compute the H matrix and calculate the
+        unit quaternion at the largest eigen value of H.
+        Then it uses quaternion to calculate the rotation matrix.
+        Translation vector is calculated by 
+            trans = b - R dot a 
 
         @author: Hyunwoo Song
+
+        @param a: the input, numpy array where the vectors are the rows of the
+                  matrix
+                  
+        @param b: the corresponding output, numpy array where the vectors are
+                  the rows of the matrix
+
+        @return: F which is a dictionary consist of 'Ratation' as a rotation
+                matrix and 'Trans' as a translational vector
+    
     """
     mean_a = np.mean( a, axis = 0 )
     mean_b = np.mean( b, axis = 0 )
@@ -75,13 +90,7 @@ def point_cloud_reg( a, b ):
     R = np.array( [[R_00, R_01, R_02], [R_10, R_11, R_12], [R_20, R_21, R_22]] )
     R_pack = transforms3d_extend.quaternions.quat2mat( q )
 
-    ##### for debug
-    # print("R: \n", R)
-    # print("R_pack: \n", R_pack)
-    # print("R - R_pack: \n", R-R_pack)
-    # print("R equals R_pack? ", np.array_equal(R, R_pack))
-
-    # Calculate translation
+        # Calculate translation
 
     p = mean_b - R.dot( mean_a ) 
     
@@ -146,65 +155,3 @@ def pointer_calibration( transformation_list: list ):
 # pointer_calibration
 
 
-def _debug_point_cloud():
-    """ Method to test the current point cloud registration 
-        algorithm.
-        
-        @author: Dimitri Lezcano and Hyunwoo Song
-        
-    """
-    print( 20 * '=', 'Functionality Check', 20 * '=' )
-    file_a_calbody = '../pa1-2_data/pa1-debug-a-calbody.txt'
-    calbody = open_files.open_calbody( file_a_calbody )
-    print( "data type: ", calbody['vec_a'].dtype )
-    # numpy float64
-    # calbody = open_files.open_calbody_npfloat(file_a_calbody)
-    
-    print( "data type: ", calbody['vec_a'].dtype )
-    print( "Calbody:\n", calbody['vec_a'] )
-    
-    file_a_calreadings = '../pa1-2_data/pa1-debug-a-calreadings.txt'
-    calreadings = open_files.open_calreadings( file_a_calreadings )
-    # numpy float 64
-    # calreadings = open_files.open_calreadings_npfloat(file_a_calreadings)
-
-    print( "data type: ", calreadings['frame1']['vec_a'].dtype )
-    print( "Calreadings:\n", calreadings['frame1']['vec_a'] )
-    
-    F = point_cloud_reg( calbody['vec_a'], calreadings['frame1']['vec_a'] )
-    print( "F: \n", F )
-
-    b_calc = np.dot( calbody['vec_a'], F['Rotation'] ) + F['Trans']
-    print( "b_origin: \n", calreadings['frame1']['vec_a'] )
-    print( "b_calc: \n", b_calc )
-    print( "b_origin equals b_calc?", np.array_equal( calreadings['frame1']['vec_a'], b_calc ) )
-    print()
-    
-    print( 25 * '=', 'TEST', 25 * '=' )
-    R = transformations.rotation_matrix( np.pi / 2, [1, 0, 0] )[:3, :3]
-    t = np.array( [1, 2, 3] )
-    print( "R:\n", R )
-    a = np.eye( 3 )
-    b = R.dot( a ) + t
-    
-    F = point_cloud_reg( a, b )
-    print( "Point Cloud R:\n", F['Rotation'] )
-    print()
-    print( "t:\n", t )
-    print( "Point cloud t:\n", F["Trans"] )
-    print( "Rotation close:", str( np.allclose( R, F['Rotation'] ) ) )
-    print( "Translations close:", str( np.allclose( t, F['Trans'] ) ) )
-    
-    print( "R.I + t:" )
-    print( b )
-    
-    print( "R_pt.I + T:" )
-    print( F["Rotation"].dot( a ) + F["Trans"] )
-    
-# _debug_point_cloud
-
-
-if __name__ == '__main__':
-    _debug_point_cloud()
-    
-    pass
