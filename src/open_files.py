@@ -183,7 +183,8 @@ def open_empivot( filename: str ):
         for i in range( N_frames ):
             marker_coordinates = []
             for j in range( 1, N_EMmarks + 1 ):
-                coords = np.fromstring( lines[i * N_EMmarks + j], dtype = float , sep = ',' )
+                coords = np.fromstring( lines[i * N_EMmarks + j], dtype = float ,
+                                         sep = ',' )
                 marker_coordinates.append( coords )  # add the position from the jth EM marker
             
             # for
@@ -229,7 +230,8 @@ def open_optpivot( filename: str ):
             # process EM coordinate frame
             emmarker_coordinates = []
             for j in range( 1, N_EMmarks + 1 ):
-                coords = np.fromstring( lines[i * ( N_OPTmarks + N_EMmarks ) + j], dtype = float , sep = ',' )
+                coords = np.fromstring( lines[i * ( N_OPTmarks + N_EMmarks ) + j],
+                                         dtype = float , sep = ',' )
                 emmarker_coordinates.append( coords )  # add the position from the jth EM marker
             
             # for
@@ -307,8 +309,46 @@ def open_emfiducials( filename: str ):
         for i in range( N_frames ):
             coords = []
             for j in range( 1, N_G + 1 ):
-                G = np.fromstring( lines[i * N_G + j], dtype = 'float' )
+                G = np.fromstring( lines[i * N_G + j], dtype = 'float' ,
+                                   sep = ',' )
                 coords.append( G )
-                
+            # for    
             G_coords['frame' + str( i + 1 )] = np.array( coords )
+            
+        # for
+        
+        return G_coords
+    
 # open_emfiducials
+
+
+def open_emnav( filename: str ):
+    """ A function that reads in the the data from an em-nav.txt data file and returns
+        two dictionaries of  the frames of each of the optical and EM trackers.
+        
+        @author: Dimitri Lezcano
+        
+        @param filename: string of the 'em-nav' filename to be read
+        
+        @return: a dictionary of frames with each frame consisting of a numpy 
+                 array of the em-navigation coordinates given in the filename
+    """
+    
+    with open( filename, 'r' ) as file:
+        lines = file.read().split( '\n' )
+        N_G, N_frames, _ = lines[0].split( ',' )
+        
+        G_coords = {}
+        for i in range( N_frames ):
+            coords = []
+            for j in range( 1, N_G + 1 ):
+                G = np.fromstring( lines[i * N_G + j], dtype = 'float' ,
+                                   sep = ',' )
+                coords.append( G )
+            # for    
+            G_coords['frame' + str( i + 1 )] = np.array( coords )
+            
+        # for
+        
+        return G_coords
+# open_emnav
