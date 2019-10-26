@@ -11,9 +11,7 @@ Created on Oct 17, 2019
 
 import transforms3d_extend
 import numpy as np
-import glob
-import open_files
-import transformations
+from scipy.interpolate import BPoly
 
 
 def point_cloud_reg( a, b ):
@@ -100,9 +98,6 @@ def point_cloud_reg( a, b ):
 # point_cloud_reg
 
 
-
-
-
 def pointer_calibration( transformation_list: list ):
     """Function that determines the parameters of the pointer given a pivot 
     calibration data for the pointer. 
@@ -110,9 +105,9 @@ def pointer_calibration( transformation_list: list ):
     The least squares function used here is proved by 'numpy.linalg.lstsq'.
     
     Solves the least squares problem of:
-    ...        ...                  ...
-    { $$R_j$$    -I  }{ p_ptr  } = { -p_j }
-      ...        ...    p_post        ...
+      ...       ...                ...
+    { R_j      -I  }{ p_ptr  } = { -p_j }
+      ...      ...    p_post       ...
     where:
     -> (R_j,p_j) is the j-th transformation of the pivot
     -> p_ptr     is the vector of the pointer posistion relative to the tracker
@@ -155,3 +150,97 @@ def pointer_calibration( transformation_list: list ):
 # pointer_calibration
 
 
+def generate_Bpoly_basis( N: int ):
+    """This function is to generate a basis of the bernstein polynomial basis
+       
+    
+       @author: Dimitri Lezcano
+       
+       @param N: an integer representing the highest order or the 
+                 Bernstein polynomial.
+    
+       @return:  A list of Bernstein polynomial objects of size N, that will 
+                 individually be B_0,n, B_1,n, ..., B_n,n
+                
+    """
+    zeros = np.zeros( N + 1 )
+    
+    x_break = [0, 1]
+    basis = []
+    
+    for i in range( N ):
+        c = np.copy( zeros )
+        c[i] = 1
+        c = c.reshape( ( -1, 1 ) )
+        basis.append( BPoly( c, x_break ) )
+        
+    # for 
+    
+    return basis
+
+# generate_Bpoly
+
+
+def scale_to_box( X: np.ndarray ):
+    """A Function to scale an input array of vectors and return 
+       the scaled version from 0 to 1
+       
+       @author Dimitri Lezcano
+       
+       @parap X: a numpy array where the rows are the corresponding vectors
+                 to be scaled.
+     
+       @return: X', the scaled vectors given from the function.
+       
+    """
+    qmin = np.min( X, 0 )  # minimum vector for scaling
+    qmax = np.max( X, 0 )  # maximum vector for scaling
+    div = np.linalg.norm( qmax - qmin )
+    
+    X_prime = ( X - qmin ) / div  # normalized input
+    
+    return X_prime
+    
+# scale_to_box
+
+
+def undistort( X: np.ndarray, Y :np.ndarray, order:int ):
+    """Function to undistort a calibration data set using Bernstein polynomials.
+    
+       Solving the least squares problem of type:
+          ...        ...        ...       c_0       ...
+       ( B_0,N(x_j)  ...    B_N,N(x_j) )( ... ) = ( p_j )
+          ...        ...        ...       c_N       ...
+          
+       @author: Dimitri Lezcano
+       
+       @param X: The input parameters to be fit to Y
+       
+       @param Y: The output parameters to be fit from X
+       
+       @param order: The highest order that would like to be fitted of the 
+                     Bernstein polynomial
+       
+       @return: A Bernstein Polynomial object with the fitted coefficients
+    
+    """
+    bern_basis = generate_Bpoly_basis( order )
+    X_prime = scale_to_box( X )  # "normalized" vectors
+    
+    bern_Matrix = None
+    for B in bern_basis:
+        if isinstance( bern_Matrix, type( None ) ):  # instantiation
+            bern_Matrix = B( X_prime )
+        
+        else:  # horizontally stack
+            bern_Matrix = np.hstack( ( bern_Matrix, B( X_prime ) ) )
+    
+    # for
+    
+    lstsq_soln, _, _ = np.linalg.lstsq( bern_Matrix, Y, None )
+    
+    coeffs = lstsq_soln.reshape( ( -1, 1 ) )
+    
+    return BPoly( coeffs, [0, 1] )
+    
+# undistort

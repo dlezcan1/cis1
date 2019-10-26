@@ -258,7 +258,7 @@ def open_optpivot( filename: str ):
 
 def open_ctfiducials( filename: str ):
     """ A function that reads in the the data from an ct-fiducials.txt data file and returns
-        two dictionaries of  the frames of each of the optical and EM trackers.
+        a numpy array of the fiducial coordinates in the CT frame of reference.
         
         @author: Dimitri Lezcano
         
@@ -291,7 +291,7 @@ def open_ctfiducials( filename: str ):
 
 def open_emfiducials( filename: str ):
     """ A function that reads in the the data from an em-fiducialss.txt data file and returns
-        two dictionaries of  the frames of each of the optical and EM trackers.
+        a dictionary of frames with em fiducial coordinates.
         
         @author: Dimitri Lezcano
         
@@ -324,7 +324,7 @@ def open_emfiducials( filename: str ):
 
 def open_emnav( filename: str ):
     """ A function that reads in the the data from an em-nav.txt data file and returns
-        two dictionaries of  the frames of each of the optical and EM trackers.
+        a dictionary of  the frames of each of EM trackers.
         
         @author: Dimitri Lezcano
         
@@ -351,4 +351,53 @@ def open_emnav( filename: str ):
         # for
         
         return G_coords
+
 # open_emnav
+
+
+def open_output1( filename: str ):
+    """ A function that reads in the the data from an output1.txt data file and 
+        returns a dictionary with 3 values, the optical probe position,
+        the EM probe position, and a dictionary of the frames for C_expectee
+        
+        @author: Dimitri Lezcano
+        
+        @param filename: string of the 'output1' filename to be read
+        
+        @return: a dictionary with three keys:
+                 "opt_probe":  the optical probe position
+                 "em_probe":   the EM probe position
+                 "C_expected": a dictionary of frames for the C_expected coordinates.
+    """
+    retval = {}
+    with open( filename, 'r' ) as file:
+        lines = file.read().split( '\n' )
+        N_C, N_frames, _ = lines[0].split( ',' )
+        N_C = int( N_C )
+        N_frames = int( N_frames )
+        
+        em_probe_pos = np.fromstring( lines[1], dtype = 'float' ,
+                                   sep = ',' )
+        opt_probe_pos = np.fromstring( lines[2], dtype = 'float' ,
+                                   sep = ',' )
+        retval['em_probe'] = em_probe_pos
+        retval['opt_probe'] = opt_probe_pos
+        
+        C_coords = {}
+        for i in range( N_frames ):
+            coords = []
+            for j in range( 2, N_C + 2 ):
+                c = em_probe_pos = np.fromstring( lines[i * N_C + j],
+                                                   dtype = 'float' ,
+                                                   sep = ',' )
+                coords.append( c )
+            
+            # for 
+            C_coords['frame' + str( i + 1)] = np.array(coords)
+            
+        # for
+        retval['C_expected'] = C_coords
+        
+        return retval
+    
+# open_output1
