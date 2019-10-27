@@ -14,6 +14,54 @@ import numpy as np
 from scipy.interpolate import BPoly
 
 
+def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
+    """This function is to perform the 3-D Bernstein polynomial function
+       represented in the tensor form of the interpolation slide deck
+       
+       @author Dimitri Lezcano
+       
+       @param c:      the coefficient matrix that must be a column vector
+       
+       @param vector: the 3-D vector to be evaluated
+       
+       @param qmin:   the minimum value for scaling
+       
+       @param qmax:   the maximum value for scaling
+       
+       @return: returns a 3-D vector as calculated by the polynomial.
+       
+    """
+    x_break = [0, 1]
+    x, y, z = scale_to_box( vector, qmin, qmax )[0]
+    N = int( ( len( c ) ) ** ( 1 / 3 ) )
+    basis = generate_Bpoly_basis( N - 1 )
+    
+    triple_basis = lambda i, j, k: basis[i]( x ) * basis[j]( y ) * basis[k]( z )
+    
+    retval = np.zeros( 3 )
+    bern_Matrix = np.empty( ( 1, len( c ) ) )
+    for i in range( N ):
+        for j in range( N ): 
+            for k in range( N ):
+                #=================== SUM IMPLEMENTATION =====================
+                # c_ijk = c[i * N ** 2 + j * N + k, :]  # pick row
+                # retval += c_ijk * triple_basis( i, j, k )
+                #================== MATRIX IMPLEMENTATION ===================
+                
+                # generate the bernstein matrix
+                val = triple_basis( i, j, k )
+                # performed for whole vector so add the entire row
+                bern_Matrix[:, i * ( N ) ** 2 + j * ( N ) + k] = val
+                
+            # for
+        # for
+    # for
+    retval = bern_Matrix.dot( c ).reshape(-1)
+    
+    return retval
+# BPoly3D
+
+
 def point_cloud_reg( a, b ):
     """ This function read the two coordinate systems and
         calculate the point-to-point registration function.
@@ -168,7 +216,7 @@ def generate_Bpoly_basis( N: int ):
     x_break = [0, 1]
     basis = []
     
-    for i in range( N ):
+    for i in range( N + 1 ):
         c = np.copy( zeros )
         c[i] = 1
         c = c.reshape( ( -1, 1 ) )
@@ -181,31 +229,34 @@ def generate_Bpoly_basis( N: int ):
 # generate_Bpoly
 
 
-def scale_to_box( X: np.ndarray ):
+def scale_to_box( X: np.ndarray , qmin, qmax ):
     """A Function to scale an input array of vectors and return 
-       the scaled version from 0 to 1
+       the scaled version from 0 to 1.
        
        @author Dimitri Lezcano
        
-       @parap X: a numpy array where the rows are the corresponding vectors
-                 to be scaled.
+       @parap X:    a numpy array where the rows are the corresponding vectors
+                    to be scaled.
+                 
+       @param qmin: a value that represents the minimum value for scaling
+       
+       @param qmax: a value that represents the maximum value for scaling
      
        @return: X', the scaled vectors given from the function.
        
     """
-    qmin = np.min( X, 0 )  # minimum vector for scaling
-    qmax = np.max( X, 0 )  # maximum vector for scaling
     div = np.linalg.norm( qmax - qmin )
     
     X_prime = ( X - qmin ) / div  # normalized input
     
-    return X_prime
+    return X_prime, qmin, qmax
     
 # scale_to_box
 
 
 def undistort( X: np.ndarray, Y :np.ndarray, order:int ):
     """Function to undistort a calibration data set using Bernstein polynomials.
+       Implemented for 3-D case only.
     
        Solving the least squares problem of type:
           ...        ...        ...       c_0       ...
@@ -225,22 +276,35 @@ def undistort( X: np.ndarray, Y :np.ndarray, order:int ):
     
     """
     bern_basis = generate_Bpoly_basis( order )
-    X_prime = scale_to_box( X )  # "normalized" vectors
     
-    bern_Matrix = None
-    for B in bern_basis:
-        if isinstance( bern_Matrix, type( None ) ):  # instantiation
-            bern_Matrix = B( X_prime )
-        
-        else:  # horizontally stack
-            bern_Matrix = np.hstack( ( bern_Matrix, B( X_prime ) ) )
+    qmin = np.min( X )
+    qmax = np.max( X )
     
+    triple_basis = lambda i, j, k, x, y, z: ( bern_basis[i]( x ) * 
+                                              bern_basis[j]( y ) * 
+                                              bern_basis[k]( z ) )
+    
+    X_prime, _, _ = scale_to_box( X , qmin, qmax )  # "normalized" vectors
+    X_px = X_prime[:, 0].reshape( ( -1, 1 ) )
+    X_py = X_prime[:, 1].reshape( ( -1, 1 ) )
+    X_pz = X_prime[:, 2].reshape( ( -1, 1 ) )
+    
+    N = ( order + 1 ) ** 3  # number of combos ijk are (num_of_bases)^3 
+    # generate the Bernstein polynomial tensor
+    bern_Matrix = np.empty( ( len( X ), N ) )
+    for i in range( order + 1 ):
+        for j in range( order + 1 ):
+            for k in range( order + 1 ):
+                # compute b_i(x)*b_j(y)*b_k(z)
+                val = triple_basis( i, j, k, X_px, X_py, X_pz )
+                # performed for whole vector so add the entire row
+                bern_Matrix[:, i * ( order + 1 ) ** 2 + j * ( order + 1 ) + k] = val.reshape( -1 )
+            
+            # for
+        # for
     # for
     
-    lstsq_soln, _, _ = np.linalg.lstsq( bern_Matrix, Y, None )
-    
-    coeffs = lstsq_soln.reshape( ( -1, 1 ) )
-    
-    return BPoly( coeffs, [0, 1] )
+    lstsq_soln, _, _, _ = np.linalg.lstsq( bern_Matrix, Y, None )
+    return lstsq_soln, qmin, qmax
     
 # undistort
