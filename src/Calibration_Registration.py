@@ -16,8 +16,13 @@ from scipy.interpolate import BPoly
 
 def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
     """This function is to perform the 3-D Bernstein polynomial function
-       represented in the tensor form of the interpolation slide deck
+       represented in the tensor form of the "Interpolation" slide deck
        
+       @bug: Currently for higher orders than 2, solutions diverge rapidly for this
+             This could be an error with the fitting of coefficients in the 
+             'undistort' function or with the implemenation of'correctDistortion'
+             function.
+                   
        @author Dimitri Lezcano
        
        @param c:      the coefficient matrix that must be a column vector
@@ -257,6 +262,11 @@ def scale_to_box( X: np.ndarray , qmin, qmax ):
 def undistort( X: np.ndarray, Y :np.ndarray, order:int ):
     """Function to undistort a calibration data set using Bernstein polynomials.
        Implemented for 3-D case only.
+       
+       @bug: Currently for higher orders than 2, solutions diverge rapidly for this
+             This could be an error with the fitting of coefficients in the 
+             'undistort' function or with the implemenation of'correctDistortion'
+             function.
     
        Solving the least squares problem of type:
           ...        ...        ...       c_0       ...
