@@ -17,11 +17,6 @@ from scipy.interpolate import BPoly
 def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
     """This function is to perform the 3-D Bernstein polynomial function
        represented in the tensor form of the "Interpolation" slide deck
-       
-       @bug: Currently for higher orders than 2, solutions diverge rapidly for this
-             This could be an error with the fitting of coefficients in the 
-             'undistort' function or with the implemenation of'correctDistortion'
-             function.
                    
        @author Dimitri Lezcano
        
@@ -43,21 +38,8 @@ def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
     assert ( z <= 1 and z >= 0 )
     
     N = int( ( len( c ) ) ** ( 1 / 3 ) )
-    basis = generate_Bpoly_basis( N )
     
-    triple_basis = lambda i, j, k: ( basis[i]( x ) ) * ( basis[j]( y ) ) * ( basis[k]( z ) )
-    bern_Matrix = np.empty( ( 1, len( c ) ) )
-    for i in range( N ):
-        for j in range( N ): 
-            for k in range( N ):
-                # generate the bernstein matrix
-                val = triple_basis( i, j, k )
-                # performed for whole vector so add the entire row
-                bern_Matrix[:, i * ( N ) ** 2 + j * ( N ) + k] = val
-                 
-            # for
-        # for
-    # for
+    bern_Matrix = generate_berntensor( vector, qmin, qmax, N )
     
     retval = ( bern_Matrix.dot( c ) ).reshape( -1 )
     
@@ -67,7 +49,8 @@ def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
 
 
 def generate_berntensor( X: np.ndarray, qmin: float, qmax: float, order: int ):
-    """Function to generatea tensor of the 3-D Bernstein functions
+    """Function to generatea tensor of the 3-D Bernstein functions where 
+       F_ijk = b_i(x)*b_j(y)*b_k(z).
     
        @author: Dimitri Lezcano
        
@@ -86,14 +69,20 @@ def generate_berntensor( X: np.ndarray, qmin: float, qmax: float, order: int ):
     bern_basis = generate_Bpoly_basis( order )
     
     X_prime = scale_to_box( X, qmin, qmax )[0]
-    X_px = X_prime[:, 0].reshape( ( -1, 1 ) )
-    X_py = X_prime[:, 1].reshape( ( -1, 1 ) )
-    X_pz = X_prime[:, 2].reshape( ( -1, 1 ) )
+    if X.ndim > 1:
+        X_px = X_prime[:, 0].reshape( ( -1, 1 ) )
+        X_py = X_prime[:, 1].reshape( ( -1, 1 ) )
+        X_pz = X_prime[:, 2].reshape( ( -1, 1 ) )
+        bern_matrix = np.zeros( ( len( X ), ( order + 1 ) ** 3 ) )
+        
+    # if
+    else:
+        X_px, X_py, X_pz = X_prime
+        bern_matrix = np.zeros( ( 1, ( order + 1 ) ** 3 ) )
     
     bern_ijk = lambda i, j, k: ( ( bern_basis[i]( X_px ) ) * ( bern_basis[j]( X_py ) ) * 
                                  ( bern_basis[k]( X_pz ) ) )
     
-    bern_matrix = np.zeros( ( len( X ), ( order + 1 ) ** 3 ) )
     for i in range( order + 1 ):
         for j in range( order + 1 ):
             for k in range( order + 1 ):
@@ -104,6 +93,9 @@ def generate_berntensor( X: np.ndarray, qmin: float, qmax: float, order: int ):
             # for
         # for
     # for
+    
+    assert ( np.min( bern_matrix ) >= 0 )
+    assert ( np.max( bern_matrix ) <= 1 )
     
     return bern_matrix
     
@@ -237,7 +229,7 @@ def pointer_calibration( transformation_list: list ):
         # else
     # for
         
-    lst_sqr_soln, _, _, _ = np.linalg.lstsq( coeffs, translations, None )
+    lst_sqr_soln, _, _, _ = np.linalg.lstsq( coeffs, translations, rcond = 0.5 )
     # p_ptr  is indexed 0-2
     # p_post is indexed 3-5
     
@@ -248,7 +240,6 @@ def pointer_calibration( transformation_list: list ):
 
 def generate_Bpoly_basis( N: int ):
     """This function is to generate a basis of the bernstein polynomial basis
-       
     
        @author: Dimitri Lezcano
        
@@ -305,11 +296,6 @@ def scale_to_box( X: np.ndarray , qmin, qmax ):
 def undistort( X: np.ndarray, Y :np.ndarray, order:int ):
     """Function to undistort a calibration data set using Bernstein polynomials.
        Implemented for 3-D case only.
-       
-       @bug: Currently for higher orders than 2, solutions diverge rapidly for this
-             This could be an error with the fitting of coefficients in the 
-             'undistort' function or with the implemenation of'correctDistortion'
-             function.
     
        Solving the least squares problem of type:
           ...        ...        ...       c_0       ...
@@ -331,7 +317,7 @@ def undistort( X: np.ndarray, Y :np.ndarray, order:int ):
     qmin = np.min( X )
     qmax = np.max( X )
     
-    #============================= OLD METHOD ==================================
+    #====================== OLD METHOD: CAN REMOVE =============================
     # X_prime, _, _ = scale_to_box( X , qmin, qmax )  # "normalized" vectors
     # basis = genreate_Bpoly_basis(order)
     # N = (order + 1) **3

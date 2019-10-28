@@ -12,6 +12,7 @@ import transforms3d_extend as tf3e  # @UnusedImport
 import numpy as np
 import transformations
 from scipy.interpolate import BPoly
+from Calibration_Registration import generate_berntensor
 
 
 def debug_point_cloud():
@@ -160,6 +161,11 @@ def debug_calibration():
 def debug_undistort():
     """This function is to debug the 'undistort' function"""
     X = np.random.randn( 6, 3 )
+#     qmin = np.min( X )
+#     qmax = np.max( X )
+#     tensor = generate_berntensor( X, qmin, qmax, 1 )
+#     c = np.ones( ( 2 ** 3, 3 ) )
+#     Y = tensor.dot(c)
     Y = X ** 2 + 2 * X + 1
      
     #==========================================================================
@@ -167,11 +173,11 @@ def debug_undistort():
     # divergs to large values. 2nd order appears to be good here for
     # this fit seems to be good for 2. Carries away for greater than 2
     #==========================================================================
-    coeffs, qmin, qmax = cr.undistort( X, Y, 2 )
+    coeffs, qmin, qmax = cr.undistort( X, Y, 5 )
     Y_fit = [cr.correctDistortion( coeffs, v, qmin, qmax ) for v in X ]
     Y_fit = np.array( Y_fit )
     
-    errors = np.abs( Y_fit - Y ) / Y
+    errors = np.abs( Y_fit - Y )  # / Y
     
     print( 20 * '=', "Debug 'undistort'", 20 * '=' )
     print( "X" )
@@ -186,7 +192,7 @@ def debug_undistort():
     print()
     
     print( "|Y-Y_fit|/Y " )
-    print( errors )
+    print( np.round( errors, 2 ) )
     
 # debug_undistort
 
