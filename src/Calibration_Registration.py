@@ -36,35 +36,78 @@ def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
        @return: returns a 3-D vector as calculated by the polynomial.
        
     """
-    x_break = [0, 1]
     x, y, z = scale_to_box( vector, qmin, qmax )[0]
+    
+    assert ( x <= 1 and x >= 0 )
+    assert ( y <= 1 and y >= 0 )
+    assert ( z <= 1 and z >= 0 )
+    
     N = int( ( len( c ) ) ** ( 1 / 3 ) )
-    basis = generate_Bpoly_basis( N - 1 )
+    basis = generate_Bpoly_basis( N )
     
-    triple_basis = lambda i, j, k: basis[i]( x ) * basis[j]( y ) * basis[k]( z )
-    
-    retval = np.zeros( 3 )
+    triple_basis = lambda i, j, k: ( basis[i]( x ) ) * ( basis[j]( y ) ) * ( basis[k]( z ) )
     bern_Matrix = np.empty( ( 1, len( c ) ) )
     for i in range( N ):
         for j in range( N ): 
             for k in range( N ):
-                #=================== SUM IMPLEMENTATION =====================
-                # c_ijk = c[i * N ** 2 + j * N + k, :]  # pick row
-                # retval += c_ijk * triple_basis( i, j, k )
-                #================== MATRIX IMPLEMENTATION ===================
-                
                 # generate the bernstein matrix
                 val = triple_basis( i, j, k )
                 # performed for whole vector so add the entire row
                 bern_Matrix[:, i * ( N ) ** 2 + j * ( N ) + k] = val
+                 
+            # for
+        # for
+    # for
+    
+    retval = ( bern_Matrix.dot( c ) ).reshape( -1 )
+    
+    return retval
+
+# BPoly3D
+
+
+def generate_berntensor( X: np.ndarray, qmin: float, qmax: float, order: int ):
+    """Function to generatea tensor of the 3-D Bernstein functions
+    
+       @author: Dimitri Lezcano
+       
+       @param X:     the input to be used for the bernstein tensor
+       
+       @param qmin:  the minimum value for scaling
+       
+       @param qmax:  the maximum value for scaling
+       
+       @param order: the order of which you would like the 
+                     the Bernstein polynomials to be.
+                     
+       @return: a numpy array of the Bernstein tensor
+       
+    """
+    bern_basis = generate_Bpoly_basis( order )
+    
+    X_prime = scale_to_box( X, qmin, qmax )[0]
+    X_px = X_prime[:, 0].reshape( ( -1, 1 ) )
+    X_py = X_prime[:, 1].reshape( ( -1, 1 ) )
+    X_pz = X_prime[:, 2].reshape( ( -1, 1 ) )
+    
+    bern_ijk = lambda i, j, k: ( ( bern_basis[i]( X_px ) ) * ( bern_basis[j]( X_py ) ) * 
+                                 ( bern_basis[k]( X_pz ) ) )
+    
+    bern_matrix = np.zeros( ( len( X ), ( order + 1 ) ** 3 ) )
+    for i in range( order + 1 ):
+        for j in range( order + 1 ):
+            for k in range( order + 1 ):
+                val = bern_ijk( i, j, k )
+                val = val.reshape( -1 )
+                bern_matrix[:, i * ( order + 1 ) ** 2 + j * ( order + 1 ) + k] = val
                 
             # for
         # for
     # for
-    retval = bern_Matrix.dot( c ).reshape(-1)
     
-    return retval
-# BPoly3D
+    return bern_matrix
+    
+# generate_berntensor
 
 
 def point_cloud_reg( a, b ):
@@ -285,34 +328,33 @@ def undistort( X: np.ndarray, Y :np.ndarray, order:int ):
        @return: A Bernstein Polynomial object with the fitted coefficients
     
     """
-    bern_basis = generate_Bpoly_basis( order )
-    
     qmin = np.min( X )
     qmax = np.max( X )
     
-    triple_basis = lambda i, j, k, x, y, z: ( bern_basis[i]( x ) * 
-                                              bern_basis[j]( y ) * 
-                                              bern_basis[k]( z ) )
-    
-    X_prime, _, _ = scale_to_box( X , qmin, qmax )  # "normalized" vectors
-    X_px = X_prime[:, 0].reshape( ( -1, 1 ) )
-    X_py = X_prime[:, 1].reshape( ( -1, 1 ) )
-    X_pz = X_prime[:, 2].reshape( ( -1, 1 ) )
-    
-    N = ( order + 1 ) ** 3  # number of combos ijk are (num_of_bases)^3 
+    #============================= OLD METHOD ==================================
+    # X_prime, _, _ = scale_to_box( X , qmin, qmax )  # "normalized" vectors
+    # basis = genreate_Bpoly_basis(order)
+    # N = (order + 1) **3
+    # 
+    # bern_Matrix = np.zeros( ( len( X ), N ) )
+    # triple_basis = lambda i, j, k, x, y, z: (basis[i](x))*(basis[j](y))*(basis[k](z))
+    # 
     # generate the Bernstein polynomial tensor
-    bern_Matrix = np.empty( ( len( X ), N ) )
-    for i in range( order + 1 ):
-        for j in range( order + 1 ):
-            for k in range( order + 1 ):
-                # compute b_i(x)*b_j(y)*b_k(z)
-                val = triple_basis( i, j, k, X_px, X_py, X_pz )
-                # performed for whole vector so add the entire row
-                bern_Matrix[:, i * ( order + 1 ) ** 2 + j * ( order + 1 ) + k] = val.reshape( -1 )
-            
-            # for
-        # for
-    # for
+    # bern_Matrix = np.empty( ( len( X ), N ) )
+    # for i in range( order + 1 ):
+    #     for j in range( order + 1 ):
+    #         for k in range( order + 1 ):
+    #             # compute b_i(x)*b_j(y)*b_k(z)
+    #             val = triple_basis( i, j, k, X_px, X_py, X_pz )
+    #             # performed for whole vector so add the entire row
+    #             bern_Matrix[:, i * ( order + 1 ) ** 2 + j * ( order + 1 ) + k] = val.reshape( -1 )
+    #         
+    #         # for
+    #     # for
+    # # for
+    #===========================================================================
+   
+    bern_Matrix = generate_berntensor( X, qmin, qmax, order )
     
     lstsq_soln, _, _, _ = np.linalg.lstsq( bern_Matrix, Y, None )
     return lstsq_soln, qmin, qmax

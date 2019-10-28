@@ -160,15 +160,15 @@ def debug_calibration():
 def debug_undistort():
     """This function is to debug the 'undistort' function"""
     X = np.random.randn( 6, 3 )
-    Y = X**2 + 2*X + 1
+    Y = X ** 2 + 2 * X + 1
      
-     #==========================================================================
-     # for a 5th order Bernstein polynomial, the value seems to 
-     # divergs to large values. 2nd order appears to be good here for
-     # this fit seems to be good for 2. Carries away for greater than 2
-     #==========================================================================
-    coeffs, qmin, qmax = cr.undistort( X, Y, 2  )
-    Y_fit = [cr.correctDistortion(coeffs, v, qmin, qmax) for v in X ]
+    #==========================================================================
+    # for a 5th order Bernstein polynomial, the value seems to 
+    # divergs to large values. 2nd order appears to be good here for
+    # this fit seems to be good for 2. Carries away for greater than 2
+    #==========================================================================
+    coeffs, qmin, qmax = cr.undistort( X, Y, 2 )
+    Y_fit = [cr.correctDistortion( coeffs, v, qmin, qmax ) for v in X ]
     Y_fit = np.array( Y_fit )
     
     errors = np.abs( Y_fit - Y ) / Y
@@ -177,7 +177,7 @@ def debug_undistort():
     print( "X" )
     print( X )
     print( "X_normalized" )
-    print( cr.scale_to_box(X, qmin, qmax)[0] )
+    print( cr.scale_to_box( X, qmin, qmax )[0] )
     
     print( "Y" )
     print( Y )
