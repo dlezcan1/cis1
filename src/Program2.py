@@ -140,6 +140,24 @@ def undistort_emfield( filename_calreadings, filename_output1: str, order_fit: i
     
 # undistort_emfield
 
+def compute_fiducial_pos(filename_em_fiducials : str):
+    """ This functions computes the position of fiducial points with respect to
+        EM tracker base coordinate system.
+
+        @author: Hyunwoo Song
+
+        @param filename_em_fiducials: string of the filename to be read
+
+        @return: position(x,y,z) of the fiducial points
+    """
+    G_coords = open_files.open_emfiducials(filename_em_fiducials)
+    print("G_coords shape: ", np.shape(G_coords))
+    print("G_coords \n", G_coords)
+
+
+    fiducial_pos = 0
+    return fiducial_pos
 
 if __name__ == '__main__':
+    compute_fiducial_pos("../pa1-2_data/pa2-debug-a-em-fiducialss.txt")
     pass
