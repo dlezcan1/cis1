@@ -160,7 +160,8 @@ def debug_calibration():
 def debug_undistort():
     """This function is to debug the 'undistort' function"""
     X = np.random.randn( 6, 3 )
-    Y = X ** 2 + 2 * X + 1
+    c = np.random.randn(10)
+    Y = np.poly1d(c)(X)
      
     #==========================================================================
     # for a 5th order Bernstein polynomial, the value seems to 
@@ -174,6 +175,10 @@ def debug_undistort():
     errors = np.abs( Y_fit - Y )  # / Y
     
     print( 20 * '=', "Debug 'undistort'", 20 * '=' )
+    print('Coefficients of random polynomial 10th order polynomial')
+    print(c)
+    print()
+    
     print( "X" )
     print( X )
     print( "X_normalized" )
@@ -279,8 +284,8 @@ if __name__ == '__main__':
 #     debug_point_cloud_reg()
 #     debug_calibration()
 #     debug_undistort()
-#     debug_improved_empivot_calib()
-    debug_compute_Freg()
+    debug_improved_empivot_calib()
+#     debug_compute_Freg()
     pass
 
 # if
