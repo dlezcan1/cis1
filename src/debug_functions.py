@@ -6,13 +6,12 @@ Created on Oct 23, 2019
 This function provides several methods to debug our program
 that we have built.
 '''
-import open_files, Program1  # @UnusedImport
+import open_files, Program1, Program2  # @UnusedImport
 import Calibration_Registration as cr
 import transforms3d_extend as tf3e  # @UnusedImport
 import numpy as np
 import transformations
 from scipy.interpolate import BPoly
-from Calibration_Registration import generate_berntensor
 
 
 def debug_point_cloud():
@@ -161,11 +160,6 @@ def debug_calibration():
 def debug_undistort():
     """This function is to debug the 'undistort' function"""
     X = np.random.randn( 6, 3 )
-#     qmin = np.min( X )
-#     qmax = np.max( X )
-#     tensor = generate_berntensor( X, qmin, qmax, 1 )
-#     c = np.ones( ( 2 ** 3, 3 ) )
-#     Y = tensor.dot(c)
     Y = X ** 2 + 2 * X + 1
      
     #==========================================================================
@@ -174,7 +168,7 @@ def debug_undistort():
     # this fit seems to be good for 2. Carries away for greater than 2
     #==========================================================================
     coeffs, qmin, qmax = cr.undistort( X, Y, 5 )
-    Y_fit = [cr.correctDistortion(coeffs, v, qmin, qmax) for v in X]
+    Y_fit = [cr.correctDistortion( coeffs, v, qmin, qmax ) for v in X]
     Y_fit = np.array( Y_fit )
     
     errors = np.abs( Y_fit - Y )  # / Y
@@ -197,10 +191,21 @@ def debug_undistort():
 # debug_undistort
 
 
+def debug_improved_empivot_calib():
+    """Function to test the 'Program2.improved_empivot_calib' function."""
+    empivot_filename = '../pa1-2_data/pa2-debug-a-empivot.txt'
+    t_G, t_post = Program2.improved_empivot_calib( empivot_filename )
+    print( 't_G:\n', t_G )
+    print( 't_post\n', t_post )
+    
+# debug_improved_empivot_calib
+
+
 if __name__ == '__main__':
 #     debug_point_cloud_reg()
 #     debug_calibration()
-    debug_undistort()
+#     debug_undistort()
+    debug_improved_empivot_calib()
     
 # if
     

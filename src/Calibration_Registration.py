@@ -33,7 +33,6 @@ def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
     """
     # x, y, z = scale_to_box( vector, qmin, qmax )[0]
     scaled_vec = scale_to_box( vector, qmin, qmax )[0]
-    print( "scaled_vec : \n", scaled_vec )
     
     # assert ( x <= 1 and x >= 0 )
     # assert ( y <= 1 and y >= 0 )
@@ -43,8 +42,6 @@ def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
     
     bern_Matrix = generate_berntensor( vector, qmin, qmax, N )
     
-    print( "bern_mat shape: ", np.shape( bern_Matrix ) )
-    print( "coef shape: ", np.shape( c ) )
     retval = ( bern_Matrix.dot( c ) ).reshape( -1 )
     
     return retval
@@ -80,7 +77,6 @@ def generate_berntensor( X: np.ndarray, qmin: float, qmax: float, order: int ):
         bern_matrix = np.zeros( ( len( X ), ( order + 1 ) ** 3 ) )
     
     # if
-        
     
     else:
         X_px, X_py, X_pz = X_prime
@@ -301,7 +297,7 @@ def scale_to_box( X: np.ndarray , qmin, qmax ):
 # scale_to_box
 
 
-def undistort( X: np.ndarray, Y :np.ndarray, order:int ):
+def undistort( X: np.ndarray, Y :np.ndarray, order:int, qmin = None, qmax = None ):
     """Function to undistort a calibration data set using Bernstein polynomials.
        Implemented for 3-D case only.
     
@@ -318,35 +314,21 @@ def undistort( X: np.ndarray, Y :np.ndarray, order:int ):
        
        @param order: The highest order that would like to be fitted of the 
                      Bernstein polynomial
+                     
+       @param qmin (optional):   a floating point number representing the min
+                                 value for scaling
+     
+       @param qmax (optional):   a floating point number representing the min
+                                 value for scaling
        
        @return: A Bernstein Polynomial object with the fitted coefficients
     
     """
-    qmin = np.min( X )
-    qmax = np.max( X )
-    
-    #====================== OLD METHOD: CAN REMOVE =============================
-    # X_prime, _, _ = scale_to_box( X , qmin, qmax )  # "normalized" vectors
-    # basis = genreate_Bpoly_basis(order)
-    # N = (order + 1) **3
-    # 
-    # bern_Matrix = np.zeros( ( len( X ), N ) )
-    # triple_basis = lambda i, j, k, x, y, z: (basis[i](x))*(basis[j](y))*(basis[k](z))
-    # 
-    # generate the Bernstein polynomial tensor
-    # bern_Matrix = np.empty( ( len( X ), N ) )
-    # for i in range( order + 1 ):
-    #     for j in range( order + 1 ):
-    #         for k in range( order + 1 ):
-    #             # compute b_i(x)*b_j(y)*b_k(z)
-    #             val = triple_basis( i, j, k, X_px, X_py, X_pz )
-    #             # performed for whole vector so add the entire row
-    #             bern_Matrix[:, i * ( order + 1 ) ** 2 + j * ( order + 1 ) + k] = val.reshape( -1 )
-    #         
-    #         # for
-    #     # for
-    # # for
-    #===========================================================================
+    if isinstance( qmin, type( None ) ):
+        qmin = np.min( X )
+        
+    if isinstance( qmax, type( None ) ):
+        qmax = np.max( X )
    
     bern_Matrix = generate_berntensor( X, qmin, qmax, order )
     

@@ -25,14 +25,10 @@ def improved_empivot_calib( filename_empivot: str ):
        and then the EM pivot calibration will be performed. using the
        undistorted values.
        
-       @author: 
+       @author: Dimitri Lezcano
               
        @param filename_empivot:  a string representing the data file for the 
                                  EM pivot tracking to be read in.
-       
-       @param filename_optpivot: a string representing the data file for the
-                                 optical pivot tracking to be read in
-                                 MAY NOT BE NECESSARY
                                  
        @return: 
        
@@ -46,23 +42,36 @@ def improved_empivot_calib( filename_empivot: str ):
     filename_output1 = file_fmt.format( data_type, letter, 'output1' )
     
     # find the distortion coefficients
-    coeffs, qmin, qmax = undistort_emfield( filename_calreadings, filename_output1, 2 )
+    coeffs, qmin, qmax = undistort_emfield( filename_calreadings, filename_output1, 5 )
     
     # read in EM pivot data
     empivot = open_files.open_empivot( filename_empivot )
+    
+    # check if the box values are large enough, if not fix it.
+    min_emdata = np.min( [frame for frame in empivot.values()] )
+    max_emdata = np.max( [frame for frame in empivot.values()] )
+    if min_emdata < qmin or max_emdataa > qmax:
+            qmin = min( min_emdata, qmin )
+            qmax = max( max_emdata, qmax )
+            coeffs, qmin, qmax = undistort_emfield( filename_calreadings,
+                                                     filename_output1, 5,
+                                                     qmin, qmax )
+            print( "qmin or qmax rule violated. Recalculating with larger box." )
+            
+        # if
     
     # correct empivot data
     empivot_calibrated = {}
     for frame in empivot.keys():
         coords = empivot[frame]
         coords_calib = [cr.correctDistortion( coeffs, v, qmin, qmax ) for v in coords]
-        empivot_calibrated[frame] = np.array(coords_calib)
+        empivot_calibrated[frame] = np.array( coords_calib )
         
     # for
     
     # perform the EM pivot calibration with the calibrated data
     G_first = empivot_calibrated['frame1']
-    G_zero = np.mean(G_first, axis = 0)
+    G_zero = np.mean( G_first, axis = 0 )
     g_j = G_first - G_zero
     
     Trans_empivot = []
@@ -87,7 +96,8 @@ def improved_empivot_calib( filename_empivot: str ):
 # improved_empivot_calib
 
 
-def undistort_emfield( filename_calreadings, filename_output1: str, order_fit: int ):
+def undistort_emfield( filename_calreadings, filename_output1: str, order_fit: int ,
+                       qmin = None, qmax = None ):
     """This function is to provide an imporved pivot calibration of the EM
        probe using the undistort function provided in Calibration_Registration
        to remove distortion in the EM field.
@@ -106,6 +116,12 @@ def undistort_emfield( filename_calreadings, filename_output1: str, order_fit: i
        
        @param order_fit:         an integer representing which order of the 
                                  Bernstein polynomial fitting that will be used.
+                                        
+       @param qmin (optional):   a floating point number representing the min
+                                 value for scaling
+     
+       @param qmax (optional):   a floating point number representing the min
+                                 value for scaling
 
                                  
        @return: coefficent matrix for distortion correction of EM field
@@ -133,14 +149,15 @@ def undistort_emfield( filename_calreadings, filename_output1: str, order_fit: i
     
     C_read = np.array( C_read ).reshape( ( -1, 3 ) )
     C_expected = np.array( C_expected ).reshape( ( -1, 3 ) )
-    
-    coeffs, qmin, qmax = cr.undistort( C_read, C_expected, order_fit )
+        
+    coeffs, qmin, qmax = cr.undistort( C_read, C_expected, order_fit, qmin, qmax )
     
     return coeffs, qmin, qmax
     
 # undistort_emfield
 
-def compute_fiducial_pos(filename_em_fiducials : str, coef : np.ndarray, qmin, qmax):
+
+def compute_fiducial_pos( filename_em_fiducials : str, coef : np.ndarray, qmin, qmax ):
     """ This functions computes the position of fiducial points with respect to
         EM tracker base coordinate system.
 
@@ -150,24 +167,25 @@ def compute_fiducial_pos(filename_em_fiducials : str, coef : np.ndarray, qmin, q
 
         @return: position(x,y,z) of the fiducial points
     """
-    G_coords = open_files.open_emfiducials(filename_em_fiducials)
-    print("G_coords shape: ", np.shape(G_coords))
-    print("G_coords \n", G_coords)
+    G_coords = open_files.open_emfiducials( filename_em_fiducials )
+    print( "G_coords shape: ", np.shape( G_coords ) )
+    print( "G_coords \n", G_coords )
 
     G_tmp = G_coords['frame1']
-    print("G_tmp \n", G_tmp)
-    retval = cr.correctDistortion(coef, G_tmp, qmin, qmax)
-    print("retval \n", retval)
-    
-
+    print( "G_tmp \n", G_tmp )
+    retval = cr.correctDistortion( coef, G_tmp, qmin, qmax )
+    print( "retval \n", retval )
 
     fiducial_pos = 0
     return fiducial_pos
+
+# compute_fiducial_pos
+
 
 if __name__ == '__main__':
     file_name_emfiducial = "../pa1-2_data/pa2-debug-a-em-fiducialss.txt"
     file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
     file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
-    coef, qmin, qmax = undistort_emfield( file_name_calreadings, file_name_output1, 2)
-    compute_fiducial_pos(file_name_emfiducial, coef, qmin, qmax)
+    coef, qmin, qmax = undistort_emfield( file_name_calreadings, file_name_output1, 2 )
+    compute_fiducial_pos( file_name_emfiducial, coef, qmin, qmax )
     pass
