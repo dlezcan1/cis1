@@ -140,6 +140,34 @@ def undistort_emfield( filename_calreadings, filename_output1: str, order_fit: i
     
 # undistort_emfield
 
+def compute_fiducial_pos(filename_em_fiducials : str, coef : np.ndarray, qmin, qmax):
+    """ This functions computes the position of fiducial points with respect to
+        EM tracker base coordinate system.
+
+        @author: Hyunwoo Song
+
+        @param filename_em_fiducials: string of the filename to be read
+
+        @return: position(x,y,z) of the fiducial points
+    """
+    G_coords = open_files.open_emfiducials(filename_em_fiducials)
+    print("G_coords shape: ", np.shape(G_coords))
+    print("G_coords \n", G_coords)
+
+    G_tmp = G_coords['frame1']
+    print("G_tmp \n", G_tmp)
+    retval = cr.correctDistortion(coef, G_tmp, qmin, qmax)
+    print("retval \n", retval)
+    
+
+
+    fiducial_pos = 0
+    return fiducial_pos
 
 if __name__ == '__main__':
+    file_name_emfiducial = "../pa1-2_data/pa2-debug-a-em-fiducialss.txt"
+    file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
+    file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
+    coef, qmin, qmax = undistort_emfield( file_name_calreadings, file_name_output1, 2)
+    compute_fiducial_pos(file_name_emfiducial, coef, qmin, qmax)
     pass

@@ -31,16 +31,20 @@ def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
        @return: returns a 3-D vector as calculated by the polynomial.
        
     """
-    x, y, z = scale_to_box( vector, qmin, qmax )[0]
+    # x, y, z = scale_to_box( vector, qmin, qmax )[0]
+    scaled_vec = scale_to_box( vector, qmin, qmax )[0]
+    print( "scaled_vec : \n", scaled_vec )
     
-    assert ( x <= 1 and x >= 0 )
-    assert ( y <= 1 and y >= 0 )
-    assert ( z <= 1 and z >= 0 )
+    # assert ( x <= 1 and x >= 0 )
+    # assert ( y <= 1 and y >= 0 )
+    # assert ( z <= 1 and z >= 0 )
     
-    N = int( ( len( c ) ) ** ( 1 / 3 ) )
+    N = int( np.ceil( ( len( c ) ) ** ( 1 / 3 ) ) ) - 1
     
     bern_Matrix = generate_berntensor( vector, qmin, qmax, N )
     
+    print( "bern_mat shape: ", np.shape( bern_Matrix ) )
+    print( "coef shape: ", np.shape( c ) )
     retval = ( bern_Matrix.dot( c ) ).reshape( -1 )
     
     return retval
@@ -77,6 +81,7 @@ def generate_berntensor( X: np.ndarray, qmin: float, qmax: float, order: int ):
     
     # if
         
+    
     else:
         X_px, X_py, X_pz = X_prime
         bern_matrix = np.zeros( ( 1, ( order + 1 ) ** 3 ) )

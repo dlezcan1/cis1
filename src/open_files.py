@@ -304,6 +304,8 @@ def open_emfiducials( filename: str ):
     with open( filename, 'r' ) as file:
         lines = file.read().split( '\n' )
         N_G, N_frames, _ = lines[0].split( ',' )
+        N_G = int(N_G)
+        N_frames = int(N_frames)
         
         G_coords = {}
         for i in range( N_frames ):

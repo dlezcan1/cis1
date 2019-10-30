@@ -174,7 +174,7 @@ def debug_undistort():
     # this fit seems to be good for 2. Carries away for greater than 2
     #==========================================================================
     coeffs, qmin, qmax = cr.undistort( X, Y, 5 )
-    Y_fit = [cr.correctDistortion( coeffs, v, qmin, qmax ) for v in X ]
+    Y_fit = [cr.correctDistortion(coeffs, v, qmin, qmax) for v in X]
     Y_fit = np.array( Y_fit )
     
     errors = np.abs( Y_fit - Y )  # / Y
