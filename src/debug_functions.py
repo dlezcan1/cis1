@@ -207,23 +207,22 @@ def debug_correct_C():
     for frame in C_exp_data.keys():
         C_expected.append(C_exp_data[frame])
 
-    print("C_expected(first frame): \n", C_expected[0])
-    print()
+    #print("C_expected(first frame): \n", C_expected[0])
+    #print()
 
     # Dewarping C
     coef, qmin, qmax = Program2.undistort_emfield( file_name_calreadings, file_name_output1, 2)
     C_undistorted, outfile = Program2.correct_C(file_name_calreadings, coef, qmin, qmax)
 
-    print("C_undistorted(first frame): \n", C_undistorted[0])
-    print()
+    #print("C_undistorted(first frame): \n", C_undistorted[0])
+    #print()
 
     # Check the error
     
     print("Dewarp correct? ", np.array_equal(C_expected, C_undistorted))
     if np.array_equal(C_expected, C_undistorted) is False:
-        error = C_expected[0] - C_undistorted[0]
+        error = np.array([u-v for u, v in zip(C_expected, C_undistorted)])
         print("Error: \n", error)
-
 
     print(25*"=", " Debugging finished ", 25*"=")
     
