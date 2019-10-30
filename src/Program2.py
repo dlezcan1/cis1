@@ -58,9 +58,9 @@ def improved_empivot_calib( filename_empivot: str ):
             coeffs, qmin, qmax = undistort_emfield( filename_calreadings,
                                                      filename_output1, 5,
                                                      qmin, qmax )
-            print( "qmin or qmax rule violated. Recalculating with larger box." )
+            print( "EMpivot_calib: qmin or qmax rule violated. Recalculating with larger box." )
             
-        # if
+    # if
     
     # correct empivot data
     empivot_calibrated = {}
@@ -215,6 +215,19 @@ def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str ):
     t_G_hom = np.append( t_G, 1 )  # homogeneous representation
     
     coeffs, qmin, qmax = undistort_emfield( filename_calreadings, filename_output1, 5 )
+    
+    # check if qmin and qmax are not violated
+    min_emdata = np.min( [frame for frame in fid_em.values()] )
+    max_emdata = np.max( [frame for frame in fid_em.values()] )
+    if min_emdata < qmin or max_emdata > qmax:
+            qmin = min( min_emdata, qmin )
+            qmax = max( max_emdata, qmax )
+            coeffs, qmin, qmax = undistort_emfield( filename_calreadings,
+                                                     filename_output1, 5,
+                                                     qmin, qmax )
+            print( "Freg: qmin or qmax rule violated. Recalculating with larger box." )
+            
+    # if
     
     # correct em_fiducial data
     fid_em_calibrated = {}

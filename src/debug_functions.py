@@ -195,6 +195,50 @@ def debug_undistort():
     
 # debug_undistort
 
+def debug_undistort_emfield():
+    """Function to debug 'Program2.undistort_emfield' function"""
+    filename_calreadings = '../pa1-2_data/pa2-debug-a-calreadings.txt'
+    filename_output1 = '../pa1-2_data/pa2-debug-a-output1.txt'
+    C_exp_data = open_files.open_output1( filename_output1 )['C_expected']
+    calread = open_files.open_calreadings( filename_calreadings )
+    
+    coeffs, qmin, qmax = Program2.undistort_emfield(filename_calreadings, filename_output1, 5)
+    
+    # read in only the C_readings
+    C_read = []
+    for frame in calread.keys():
+        C_read.append( calread[frame]['vec_c'] )
+        
+    # for
+    
+    # put data into large array
+    C_expected = []
+    for frame in C_exp_data.keys():
+        C_expected.append( C_exp_data[frame] )
+        
+    # for
+    
+    C_read = np.array( C_read ).reshape( ( -1, 3 ) )
+    C_expected = np.array( C_expected ).reshape( ( -1, 3 ) )
+    
+    C_read_undistorted = [cr.correctDistortion(coeffs, c_i, qmin, qmax) 
+                          for c_i in C_read]
+    C_read_undistorted = np.array(C_read_undistorted)
+    
+    error = np.abs((C_expected-C_read_undistorted)/C_expected)
+    
+    print('C_read\n',C_read)
+    print()
+    
+    print('C_expected\n',C_expected)
+    print('C_undistorted\n',C_read_undistorted)
+    print()
+    print('Rel. Error\n',error)
+    print('Max Rel. Error:', np.max(error))
+    print('Avg. Rel. Error:', np.average(error))
+        
+# debug_undistort_emfield
+
 
 def debug_improved_empivot_calib():
     """Function to test the 'Program2.improved_empivot_calib' function."""
@@ -208,20 +252,25 @@ def debug_improved_empivot_calib():
 
 
 def debug_compute_Freg():
+    """Function to test the 'Program2.compute_Freg' function"""
     filename_ctfiducials = '../pa1-2_data/pa2-debug-a-ct-fiducials.txt'
     filename_emfiducials = '../pa1-2_data/pa2-debug-a-em-fiducialss.txt'
+    
+    # extract file metadata
     file_pattern = r'pa2-(debug|unknown)-(.)-ct-fiducials.txt'
     file_fmt = '../pa1-2_data/pa2-{0}-{1}-{2}.txt'
     res_empivot = re.search( file_pattern, filename_ctfiducials )
     data_type, letter = res_empivot.groups()
-    # compute Freg and obtain b coords
-    Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials )
-    b = open_files.open_ctfiducials( filename_ctfiducials )
     
+    # generate related files
     filename_empivot = file_fmt.format( data_type, letter, 'empivot' )
     filename_calreadings = file_fmt.format( data_type, letter, 'calreadings' )
     filename_output1 = file_fmt.format( data_type, letter, 'output1' )
     fid_em = open_files.open_emfiducials( filename_emfiducials )
+    
+    # compute Freg and obtain b coords
+    Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials )
+    b = open_files.open_ctfiducials( filename_ctfiducials )
     
     # perform empivot calibration
     t_G, _ = Program2.improved_empivot_calib( filename_empivot )
@@ -238,7 +287,7 @@ def debug_compute_Freg():
         
     # for
     
-    # initialize stuff for pose determination of EM point
+    # initializations for pose determination of EM point
     G_first = fid_em_calibrated['frame1']
     G_zero = np.mean( G_first, axis = 0 )
     g_j = G_first - G_zero
@@ -275,6 +324,8 @@ def debug_compute_Freg():
     print()
     
     print( 'Rel. Error\n', error )
+    print('Max Rel. Error:', np.max(error))
+    print('Avg. Rel. Error:', np.average(error))
 
 # debug_compute_Freg
 
@@ -284,7 +335,8 @@ if __name__ == '__main__':
 #     debug_point_cloud_reg()
 #     debug_calibration()
 #     debug_undistort()
-    debug_improved_empivot_calib()
+    debug_undistort_emfield()
+#     debug_improved_empivot_calib()
 #     debug_compute_Freg()
     pass
 
