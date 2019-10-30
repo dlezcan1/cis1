@@ -74,11 +74,14 @@ def generate_berntensor( X: np.ndarray, qmin: float, qmax: float, order: int ):
         X_py = X_prime[:, 1].reshape( ( -1, 1 ) )
         X_pz = X_prime[:, 2].reshape( ( -1, 1 ) )
         bern_matrix = np.zeros( ( len( X ), ( order + 1 ) ** 3 ) )
-        
+    
     # if
+        
     else:
         X_px, X_py, X_pz = X_prime
         bern_matrix = np.zeros( ( 1, ( order + 1 ) ** 3 ) )
+    
+    # else
     
     bern_ijk = lambda i, j, k: ( ( bern_basis[i]( X_px ) ) * ( bern_basis[j]( X_py ) ) * 
                                  ( bern_basis[k]( X_pz ) ) )
