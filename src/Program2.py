@@ -30,7 +30,9 @@ def improved_empivot_calib( filename_empivot: str ):
        @param filename_empivot:  a string representing the data file for the 
                                  EM pivot tracking to be read in.
                                  
-       @return: 
+       @return: t_g, t_post
+                t_G:    the pointer's tip location
+                t_post: the post position the pointer pivoted on.
        
     """
     # locate associated calreadings and output file for this file.
@@ -50,7 +52,7 @@ def improved_empivot_calib( filename_empivot: str ):
     # check if the box values are large enough, if not fix it.
     min_emdata = np.min( [frame for frame in empivot.values()] )
     max_emdata = np.max( [frame for frame in empivot.values()] )
-    if min_emdata < qmin or max_emdataa > qmax:
+    if min_emdata < qmin or max_emdata > qmax:
             qmin = min( min_emdata, qmin )
             qmax = max( max_emdata, qmax )
             coeffs, qmin, qmax = undistort_emfield( filename_calreadings,
@@ -82,9 +84,9 @@ def improved_empivot_calib( filename_empivot: str ):
         G = empivot_calibrated[frame]
         # frame transformation [g_j -> G]
         F_G = cr.point_cloud_reg( g_j, G )
-        # homogenous representation
+        # homogeneous representation
         F_G = tf3e.affines.compose( F_G['Trans'],
-                                                  F_G['Rotation'], zoom )
+                                    F_G['Rotation'], zoom )
         Trans_empivot.append( F_G )
 
     ############## c ################
@@ -180,6 +182,78 @@ def compute_fiducial_pos( filename_em_fiducials : str, coef : np.ndarray, qmin, 
     return fiducial_pos
 
 # compute_fiducial_pos
+
+
+def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str ):
+    """Function in order to compute the registration frame transformation
+       from the fiducials data and the em-tracked pointer. 
+    
+       @author: Dimitri Lezcano
+       
+       @param filename_ctfiducials:  A string representing the ct-fiducials data
+                                     file.
+                                     
+       @param filename_emfiducials:  A string representing the em-fiducials data
+                                     file.
+                                     
+       @return: F_reg, a 4x4 homogeneous transformation matrix corresponding
+                to the transformation for the CT coordinates.
+       
+    """
+    file_pattern = r'pa2-(debug|unknown)-(.)-ct-fiducials.txt'
+    file_fmt = '../pa1-2_data/pa2-{0}-{1}-{2}.txt'
+    res_empivot = re.search( file_pattern, filename_ctfiducials )
+    data_type, letter = res_empivot.groups()
+    filename_empivot = file_fmt.format( data_type, letter, 'empivot' )
+    filename_calreadings = file_fmt.format( data_type, letter, 'calreadings' )
+    filename_output1 = file_fmt.format( data_type, letter, 'output1' )
+    fid_ct = open_files.open_ctfiducials( filename_ctfiducials )
+    fid_em = open_files.open_emfiducials( filename_emfiducials )
+    
+    # perform empivot calibration
+    t_G, _ = improved_empivot_calib( filename_empivot )
+    t_G_hom = np.append( t_G, 1 )  # homogeneous representation
+    
+    coeffs, qmin, qmax = undistort_emfield( filename_calreadings, filename_output1, 5 )
+    
+    # correct em_fiducial data
+    fid_em_calibrated = {}
+    for frame in fid_em.keys():
+        coords = fid_em[frame]
+        coords_calib = [cr.correctDistortion( coeffs, v, qmin, qmax ) for v in coords]
+        fid_em_calibrated[frame] = np.array( coords_calib )
+        
+    # for
+    
+    # initialize stuff for pose determination of EM point
+    G_first = fid_em_calibrated['frame1']
+    G_zero = np.mean( G_first, axis = 0 )
+    g_j = G_first - G_zero
+    zoom = np.ones( 3 ) # no zooming
+    
+    B_matrix = []  # where to contain the B_i values
+    for frame in fid_em_calibrated.keys():
+        # for each frame, compute transformation of F_G[k]
+        G = fid_em_calibrated[frame]
+        # frame transformation [g_j -> G]
+        F_G = cr.point_cloud_reg( g_j, G )
+        # homogeneous representation
+        F_G = tf3e.affines.compose( F_G['Trans'],
+                                    F_G['Rotation'], zoom )
+        
+        B_i = F_G.dot( t_G_hom )[:3]
+        B_matrix.append( B_i )
+        
+    # for
+    
+    B_matrix = np.array( B_matrix )
+    Freg = cr.point_cloud_reg( B_matrix, fid_ct )
+    Freg = tf3e.affines.compose( Freg['Trans'], Freg['Rotation'],
+                                 zoom)
+    
+    return Freg
+
+# compute_Freg
 
 
 if __name__ == '__main__':

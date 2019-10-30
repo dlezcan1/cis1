@@ -11,7 +11,7 @@ import Calibration_Registration as cr
 import transforms3d_extend as tf3e  # @UnusedImport
 import numpy as np
 import transformations
-from scipy.interpolate import BPoly
+import re
 
 
 def debug_point_cloud():
@@ -93,7 +93,7 @@ def debug_point_cloud_reg():
     b_fit = np.array( [F['Rotation'].dot( ai ) + F['Trans'] for ai in a] )
     error_R = np.round( np.abs( R - F['Rotation'] ), 2 )
     error_p = np.round( np.abs( p - F['Trans'] ), 2 )
-    error_b = np.round( np.abs( b - b_fit ), 2 )
+    error_b = np.round( np.abs( ( b - b_fit ) ), 2 )
     
     print( 25 * "*", 'Test "point_cloud_reg"', 25 * '*' )
     print( 'Random quaternion:', q )
@@ -194,6 +194,7 @@ def debug_undistort():
 def debug_improved_empivot_calib():
     """Function to test the 'Program2.improved_empivot_calib' function."""
     empivot_filename = '../pa1-2_data/pa2-debug-a-empivot.txt'
+    print( 'Processing file:', empivot_filename )
     t_G, t_post = Program2.improved_empivot_calib( empivot_filename )
     print( 't_G:\n', t_G )
     print( 't_post\n', t_post )
@@ -201,11 +202,86 @@ def debug_improved_empivot_calib():
 # debug_improved_empivot_calib
 
 
+def debug_compute_Freg():
+    filename_ctfiducials = '../pa1-2_data/pa2-debug-a-ct-fiducials.txt'
+    filename_emfiducials = '../pa1-2_data/pa2-debug-a-em-fiducialss.txt'
+    file_pattern = r'pa2-(debug|unknown)-(.)-ct-fiducials.txt'
+    file_fmt = '../pa1-2_data/pa2-{0}-{1}-{2}.txt'
+    res_empivot = re.search( file_pattern, filename_ctfiducials )
+    data_type, letter = res_empivot.groups()
+    # compute Freg and obtain b coords
+    Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials )
+    b = open_files.open_ctfiducials( filename_ctfiducials )
+    
+    filename_empivot = file_fmt.format( data_type, letter, 'empivot' )
+    filename_calreadings = file_fmt.format( data_type, letter, 'calreadings' )
+    filename_output1 = file_fmt.format( data_type, letter, 'output1' )
+    fid_em = open_files.open_emfiducials( filename_emfiducials )
+    
+    # perform empivot calibration
+    t_G, _ = Program2.improved_empivot_calib( filename_empivot )
+    t_G_hom = np.append( t_G, 1 )  # homogeneous representation
+    
+    coeffs, qmin, qmax = Program2.undistort_emfield( filename_calreadings, filename_output1, 5 )
+    
+    # correct em_fiducial data
+    fid_em_calibrated = {}
+    for frame in fid_em.keys():
+        coords = fid_em[frame]
+        coords_calib = [cr.correctDistortion( coeffs, v, qmin, qmax ) for v in coords]
+        fid_em_calibrated[frame] = np.array( coords_calib )
+        
+    # for
+    
+    # initialize stuff for pose determination of EM point
+    G_first = fid_em_calibrated['frame1']
+    G_zero = np.mean( G_first, axis = 0 )
+    g_j = G_first - G_zero
+    zoom = np.ones( 3 )  # no zooming
+    
+    B_matrix = []  # where to contain the B_i values
+    for frame in fid_em_calibrated.keys():
+        # for each frame, compute transformation of F_G[k]
+        G = fid_em_calibrated[frame]
+        # frame transformation [g_j -> G]
+        F_G = cr.point_cloud_reg( g_j, G )
+        # homogeneous representation
+        F_G = tf3e.affines.compose( F_G['Trans'],
+                                    F_G['Rotation'], zoom )
+        
+        B_i = F_G.dot( t_G_hom )[:3]
+        B_matrix.append( B_i )
+        
+    # for
+    B_matrix = np.array( B_matrix )
+    
+    b_fit = [Freg.dot( np.append( B, 1 ) )[:3] for B in B_matrix]
+    b_fit = np.array( b_fit )
+    
+    error = np.abs( ( b_fit - b ) / b )
+
+    print('Freg\n',Freg)
+    print()
+    
+    print( "b\n", b )
+    print()
+    
+    print( 'b_fit\n', b_fit )
+    print()
+    
+    print( 'Rel. Error\n', error )
+
+# debug_compute_Freg
+
+    
 if __name__ == '__main__':
+#     debug_point_cloud()
 #     debug_point_cloud_reg()
 #     debug_calibration()
 #     debug_undistort()
-    debug_improved_empivot_calib()
-    
+#     debug_improved_empivot_calib()
+    debug_compute_Freg()
+    pass
+
 # if
     
