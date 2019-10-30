@@ -178,7 +178,7 @@ def open_empivot( filename: str ):
         N_EMmarks = int( N_EMmarks )  # int conversion
         N_frames = int( N_frames )  # int conversion
         
-        # process thre frames
+        # process the frames
         empivot = {}
         for i in range( N_frames ):
             marker_coordinates = []

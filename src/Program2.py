@@ -53,12 +53,13 @@ def improved_empivot_calib( filename_empivot: str ):
     min_emdata = np.min( [frame for frame in empivot.values()] )
     max_emdata = np.max( [frame for frame in empivot.values()] )
     if min_emdata < qmin or max_emdata > qmax:
+            print( "EMpivot_calib: qmin or qmax rule violated. Recalculating with larger box." )
             qmin = min( min_emdata, qmin )
             qmax = max( max_emdata, qmax )
             coeffs, qmin, qmax = undistort_emfield( filename_calreadings,
                                                      filename_output1, 5,
                                                      qmin, qmax )
-            print( "EMpivot_calib: qmin or qmax rule violated. Recalculating with larger box." )
+            print('Recalibrated')
             
     # if
     
