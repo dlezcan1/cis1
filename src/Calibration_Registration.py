@@ -162,6 +162,62 @@ def point_cloud_reg_SVD( a, b ):
     
 # point_cloud_reg_SVD
 
+def point_cloud_reg_Arun(a, b):
+    """ This function read the two coordinate systems and
+        calculate the point-to-point registration function.
+        This algorithm is explained in class and implemented as taught.
+        The relationship between a, b, and the result ("F") is
+            b = F a
+        This function will use an Arun's method to determine the Rotation matrix.
+
+        @author: Dimitri Lezcano
+
+        @param a: the input, numpy array where the vectors are the rows of the
+                  matrix
+                  
+        @param b: the corresponding output, numpy array where the vectors are
+                  the rows of the matrix
+
+        @return: F which is a dictionary consist of 'Ratation' as a rotation
+                matrix and 'Trans' as a translational vector
+    
+    """
+    mean_a = np.mean( a, axis = 0 )
+    mean_b = np.mean( b, axis = 0 )
+    
+    # Compute for mean and subtract from a, b, respectively
+    a_hat = a - mean_a
+    b_hat = b - mean_b
+
+    # Compute for H
+    mult = np.multiply( a_hat, b_hat )
+    ab_xx = np.sum( mult[:, 0] )
+    ab_yy = np.sum( mult[:, 1] )    
+    ab_zz = np.sum( mult[:, 2] )
+
+    ab_xy = np.sum( np.multiply( a_hat[:, 0], b_hat[:, 1] ) )
+    ab_xz = np.sum( np.multiply( a_hat[:, 0], b_hat[:, 2] ) )
+    ab_yx = np.sum( np.multiply( a_hat[:, 1], b_hat[:, 0] ) )
+    ab_yz = np.sum( np.multiply( a_hat[:, 1], b_hat[:, 2] ) )
+    ab_zx = np.sum( np.multiply( a_hat[:, 2], b_hat[:, 0] ) )
+    ab_zy = np.sum( np.multiply( a_hat[:, 2], b_hat[:, 1] ) )
+    
+    H = np.array( [[ab_xx, ab_xy, ab_xz], [ab_yx, ab_yy, ab_yz],
+                   [ab_zx, ab_zy, ab_zz]] )
+    
+    u, s, v = np.linalg.svd(H)
+    
+    R = v.dot(u.T)
+    if np.linalg.det(R) < 0: 
+        R[:,3] *= -1
+        
+    p = mean_b - R.dot( mean_a )
+    
+    F = {'Rotation': R, 'Trans': p}
+    
+    return F
+    
+# ponit_cloud_reg_Arun
 
 def point_cloud_reg( a, b ):
     """ This function read the two coordinate systems and
