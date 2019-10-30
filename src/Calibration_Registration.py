@@ -33,7 +33,6 @@ def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
     """
     # x, y, z = scale_to_box( vector, qmin, qmax )[0]
     scaled_vec = scale_to_box( vector, qmin, qmax )[0]
-    print( "scaled_vec : \n", scaled_vec )
     
     # assert ( x <= 1 and x >= 0 )
     # assert ( y <= 1 and y >= 0 )
@@ -43,8 +42,6 @@ def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
     
     bern_Matrix = generate_berntensor( vector, qmin, qmax, N )
     
-    print( "bern_mat shape: ", np.shape( bern_Matrix ) )
-    print( "coef shape: ", np.shape( c ) )
     retval = ( bern_Matrix.dot( c ) ).reshape( -1 )
     
     return retval

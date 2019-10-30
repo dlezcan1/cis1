@@ -6,7 +6,7 @@ Created on Oct 23, 2019
 This function provides several methods to debug our program
 that we have built.
 '''
-import open_files, Program1  # @UnusedImport
+import open_files, Program1, Program2  # @UnusedImport
 import Calibration_Registration as cr
 import transforms3d_extend as tf3e  # @UnusedImport
 import numpy as np
@@ -196,11 +196,43 @@ def debug_undistort():
     
 # debug_undistort
 
+def debug_correct_C():
+    print(25*"=", " debug_correct_C " , 25*"=")
+
+    file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
+    file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
+    # Read C_expected from output1
+    C_exp_data = open_files.open_output1(file_name_output1)['C_expected']
+    C_expected = []
+    for frame in C_exp_data.keys():
+        C_expected.append(C_exp_data[frame])
+
+    print("C_expected(first frame): \n", C_expected[0])
+    print()
+
+    # Dewarping C
+    coef, qmin, qmax = Program2.undistort_emfield( file_name_calreadings, file_name_output1, 2)
+    C_undistorted, outfile = Program2.correct_C(file_name_calreadings, coef, qmin, qmax)
+
+    print("C_undistorted(first frame): \n", C_undistorted[0])
+    print()
+
+    # Check the error
+    
+    print("Dewarp correct? ", np.array_equal(C_expected, C_undistorted))
+    if np.array_equal(C_expected, C_undistorted) is False:
+        error = C_expected[0] - C_undistorted[0]
+        print("Error: \n", error)
+
+
+    print(25*"=", " Debugging finished ", 25*"=")
+    
 
 if __name__ == '__main__':
 #     debug_point_cloud_reg()
 #     debug_calibration()
-    debug_undistort()
+    #debug_undistort()
+    debug_correct_C()
     
 # if
     

@@ -140,8 +140,8 @@ def undistort_emfield( filename_calreadings, filename_output1: str, order_fit: i
     
 # undistort_emfield
 
-def compute_fiducial_pos(filename_em_fiducials : str, coef : np.ndarray, qmin, qmax):
-    """ This functions computes the position of fiducial points with respect to
+def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
+    """ This functions corrects the C values from calreading txt file with respect to
         EM tracker base coordinate system.
 
         @author: Hyunwoo Song
@@ -150,24 +150,45 @@ def compute_fiducial_pos(filename_em_fiducials : str, coef : np.ndarray, qmin, q
 
         @return: position(x,y,z) of the fiducial points
     """
-    G_coords = open_files.open_emfiducials(filename_em_fiducials)
-    print("G_coords shape: ", np.shape(G_coords))
-    print("G_coords \n", G_coords)
 
-    G_tmp = G_coords['frame1']
-    print("G_tmp \n", G_tmp)
-    retval = cr.correctDistortion(coef, G_tmp, qmin, qmax)
-    print("retval \n", retval)
+    name_pattern = r'pa(.)-(debug|unknown)-(.)-calreadings.txt'
+    res_calreading = re.search(name_pattern, filename_calreadings)
+    assign_num, data_type, letter = res_calreading.groups()
+    outfile = "../pa{0}_results/pa{0}-{1}-{2}-output{0}.txt".format(assign_num,
+                                                                    data_type,
+                                                                    letter)
+
+    Cal_readings = open_files.open_calreadings(filename_calreadings)
+    C_undistorted = []
+    for idx, frames in enumerate(Cal_readings):
+        C_distorted = Cal_readings[frames]['vec_c']
+        #print("C_distorted shape: ", np.shape(C_distorted))
+        #print("C_distorted: \n", C_distorted)
+
+        retval = np.array([cr.correctDistortion(coef, C_tmp, qmin, qmax) for C_tmp in C_distorted])
+        #print("retval shape: ", np.shape(retval))
+        #print("retval : \n",retval)
     
+        C_undistorted.append( retval )
 
+    #print("C_undistorted \n", C_undistorted)
+    #print("C_undistorted shape: ", np.shape(C_undistorted))
 
-    fiducial_pos = 0
-    return fiducial_pos
+    with open(outfile, 'w+') as writestream:
+        outname = outfile.split( '/' )[-1]
+        writestream.write( "{0}, {1}, {2}\n".format(len( Cal_readings['frame1']['vec_c'] ),
+                                                    len( Cal_readings.keys() ),
+                                                    outname ) ) # first line
+        #write the undistorted C
+        for frame in C_undistorted:
+            for c in frame:
+                writestream.write( "{0:.2f}, {1:.2f}, {2:.2f} \n".format(*c))
+
+    print("File '{}' written.".format(outfile))
+
+    return [C_undistorted, outfile]
+# correct_C
 
 if __name__ == '__main__':
-    file_name_emfiducial = "../pa1-2_data/pa2-debug-a-em-fiducialss.txt"
-    file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
-    file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
-    coef, qmin, qmax = undistort_emfield( file_name_calreadings, file_name_output1, 2)
-    compute_fiducial_pos(file_name_emfiducial, coef, qmin, qmax)
+
     pass
