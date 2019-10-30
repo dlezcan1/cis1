@@ -202,6 +202,7 @@ def debug_correct_C():
     file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
     file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
     # Read C_expected from output1
+    print("reading C_expected...")
     C_exp_data = open_files.open_output1(file_name_output1)['C_expected']
     C_expected = []
     for frame in C_exp_data.keys():
@@ -211,7 +212,8 @@ def debug_correct_C():
     #print()
 
     # Dewarping C
-    coef, qmin, qmax = Program2.undistort_emfield( file_name_calreadings, file_name_output1, 2)
+    print("dewarping C...")
+    coef, qmin, qmax = Program2.undistort_emfield( file_name_calreadings, file_name_output1, 5)
     C_undistorted, outfile = Program2.correct_C(file_name_calreadings, coef, qmin, qmax)
 
     #print("C_undistorted(first frame): \n", C_undistorted[0])

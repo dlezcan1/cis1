@@ -161,6 +161,7 @@ def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
     Cal_readings = open_files.open_calreadings(filename_calreadings)
     C_undistorted = []
     for idx, frames in enumerate(Cal_readings):
+        print('frame %d/%d' %(idx+1, len(Cal_readings.keys())))
         C_distorted = Cal_readings[frames]['vec_c']
         #print("C_distorted shape: ", np.shape(C_distorted))
         #print("C_distorted: \n", C_distorted)
@@ -174,6 +175,7 @@ def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
     #print("C_undistorted \n", C_undistorted)
     #print("C_undistorted shape: ", np.shape(C_undistorted))
 
+    # write corrected C to output1.txt 
     with open(outfile, 'w+') as writestream:
         outname = outfile.split( '/' )[-1]
         writestream.write( "{0}, {1}, {2}\n".format(len( Cal_readings['frame1']['vec_c'] ),
