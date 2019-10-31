@@ -178,7 +178,7 @@ def open_empivot( filename: str ):
         N_EMmarks = int( N_EMmarks )  # int conversion
         N_frames = int( N_frames )  # int conversion
         
-        # process thre frames
+        # process the frames
         empivot = {}
         for i in range( N_frames ):
             marker_coordinates = []
@@ -388,7 +388,7 @@ def open_output1( filename: str ):
         C_coords = {}
         for i in range( N_frames ):
             coords = []
-            for j in range( 2, N_C + 2 ):
+            for j in range( 3, N_C + 3):
                 c = em_probe_pos = np.fromstring( lines[i * N_C + j],
                                                    dtype = 'float' ,
                                                    sep = ',' )

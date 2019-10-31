@@ -11,8 +11,7 @@ import Calibration_Registration as cr
 import transforms3d_extend as tf3e  # @UnusedImport
 import numpy as np
 import transformations
-from scipy.interpolate import BPoly
-from Calibration_Registration import generate_berntensor
+import re
 
 
 def debug_point_cloud():
@@ -94,7 +93,7 @@ def debug_point_cloud_reg():
     b_fit = np.array( [F['Rotation'].dot( ai ) + F['Trans'] for ai in a] )
     error_R = np.round( np.abs( R - F['Rotation'] ), 2 )
     error_p = np.round( np.abs( p - F['Trans'] ), 2 )
-    error_b = np.round( np.abs( b - b_fit ), 2 )
+    error_b = np.round( np.abs( ( b - b_fit ) ), 2 )
     
     print( 25 * "*", 'Test "point_cloud_reg"', 25 * '*' )
     print( 'Random quaternion:', q )
@@ -161,12 +160,8 @@ def debug_calibration():
 def debug_undistort():
     """This function is to debug the 'undistort' function"""
     X = np.random.randn( 6, 3 )
-#     qmin = np.min( X )
-#     qmax = np.max( X )
-#     tensor = generate_berntensor( X, qmin, qmax, 1 )
-#     c = np.ones( ( 2 ** 3, 3 ) )
-#     Y = tensor.dot(c)
-    Y = X ** 2 + 2 * X + 1
+    c = np.random.randn(10)
+    Y = np.poly1d(c)(X)
      
     #==========================================================================
     # for a 5th order Bernstein polynomial, the value seems to 
@@ -174,12 +169,16 @@ def debug_undistort():
     # this fit seems to be good for 2. Carries away for greater than 2
     #==========================================================================
     coeffs, qmin, qmax = cr.undistort( X, Y, 5 )
-    Y_fit = [cr.correctDistortion(coeffs, v, qmin, qmax) for v in X]
+    Y_fit = [cr.correctDistortion( coeffs, v, qmin, qmax ) for v in X]
     Y_fit = np.array( Y_fit )
     
     errors = np.abs( Y_fit - Y )  # / Y
     
     print( 20 * '=', "Debug 'undistort'", 20 * '=' )
+    print('Coefficients of random polynomial 10th order polynomial')
+    print(c)
+    print()
+    
     print( "X" )
     print( X )
     print( "X_normalized" )
@@ -196,6 +195,7 @@ def debug_undistort():
     
 # debug_undistort
 
+<<<<<<< HEAD
 def debug_correct_C():
     print(25*"=", " debug_correct_C " , 25*"=")
 
@@ -242,13 +242,159 @@ def debug_compute_emfiducial():
     coef, qmin, qmax = Program2.undistort_emfield( file_name_calreadings, file_name_output1, 5)
     Program2.compute_fiducials_em(file_name_emfiducials, coef, qmin, qmax, t_post)
 
+=======
+def debug_undistort_emfield():
+    """Function to debug 'Program2.undistort_emfield' function"""
+    filename_calreadings = '../pa1-2_data/pa2-debug-a-calreadings.txt'
+    filename_output1 = '../pa1-2_data/pa2-debug-a-output1.txt'
+    C_exp_data = open_files.open_output1( filename_output1 )['C_expected']
+    calread = open_files.open_calreadings( filename_calreadings )
+    
+    coeffs, qmin, qmax = Program2.undistort_emfield(filename_calreadings, filename_output1, 5)
+    
+    # read in only the C_readings
+    C_read = []
+    for frame in calread.keys():
+        C_read.append( calread[frame]['vec_c'] )
+        
+    # for
+    
+    # put data into large array
+    C_expected = []
+    for frame in C_exp_data.keys():
+        C_expected.append( C_exp_data[frame] )
+        
+    # for
+    
+    C_read = np.array( C_read ).reshape( ( -1, 3 ) )
+    C_expected = np.array( C_expected ).reshape( ( -1, 3 ) )
+    
+    C_read_undistorted = [cr.correctDistortion(coeffs, c_i, qmin, qmax) 
+                          for c_i in C_read]
+    C_read_undistorted = np.array(C_read_undistorted)
+    
+    error = np.abs((C_expected-C_read_undistorted)/C_expected)
+    
+    print('C_read\n',C_read)
+    print()
+    
+    print('C_expected\n',C_expected)
+    print('C_undistorted\n',C_read_undistorted)
+    print()
+    print('Rel. Error\n',error)
+    print('Max Rel. Error:', np.max(error))
+    print('Avg. Rel. Error:', np.average(error))
+        
+# debug_undistort_emfield
 
+
+def debug_improved_empivot_calib():
+    """Function to test the 'Program2.improved_empivot_calib' function."""
+    empivot_filename = '../pa1-2_data/pa2-debug-a-empivot.txt'
+    print( 'Processing file:', empivot_filename )
+    t_G, t_post = Program2.improved_empivot_calib( empivot_filename )
+    print( 't_G:\n', t_G )
+    print( 't_post\n', t_post )
+    
+# debug_improved_empivot_calib
+
+
+def debug_compute_Freg():
+    """Function to test the 'Program2.compute_Freg' function"""
+    filename_ctfiducials = '../pa1-2_data/pa2-debug-a-ct-fiducials.txt'
+    filename_emfiducials = '../pa1-2_data/pa2-debug-a-em-fiducialss.txt'
+    
+    # extract file metadata
+    file_pattern = r'pa2-(debug|unknown)-(.)-ct-fiducials.txt'
+    file_fmt = '../pa1-2_data/pa2-{0}-{1}-{2}.txt'
+    res_empivot = re.search( file_pattern, filename_ctfiducials )
+    data_type, letter = res_empivot.groups()
+    
+    # generate related files
+    filename_empivot = file_fmt.format( data_type, letter, 'empivot' )
+    filename_calreadings = file_fmt.format( data_type, letter, 'calreadings' )
+    filename_output1 = file_fmt.format( data_type, letter, 'output1' )
+    fid_em = open_files.open_emfiducials( filename_emfiducials )
+    
+    # compute Freg and obtain b coords
+    Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials )
+    b = open_files.open_ctfiducials( filename_ctfiducials )
+    
+    # perform empivot calibration
+    t_G, _ = Program2.improved_empivot_calib( filename_empivot )
+    t_G_hom = np.append( t_G, 1 )  # homogeneous representation
+    
+    coeffs, qmin, qmax = Program2.undistort_emfield( filename_calreadings, filename_output1, 5 )
+    
+    # correct em_fiducial data
+    fid_em_calibrated = {}
+    for frame in fid_em.keys():
+        coords = fid_em[frame]
+        coords_calib = [cr.correctDistortion( coeffs, v, qmin, qmax ) for v in coords]
+        fid_em_calibrated[frame] = np.array( coords_calib )
+        
+    # for
+    
+    # initializations for pose determination of EM point
+    G_first = fid_em_calibrated['frame1']
+    G_zero = np.mean( G_first, axis = 0 )
+    g_j = G_first - G_zero
+    zoom = np.ones( 3 )  # no zooming
+    
+    B_matrix = []  # where to contain the B_i values
+    for frame in fid_em_calibrated.keys():
+        # for each frame, compute transformation of F_G[k]
+        G = fid_em_calibrated[frame]
+        # frame transformation [g_j -> G]
+        F_G = cr.point_cloud_reg( g_j, G )
+        # homogeneous representation
+        F_G = tf3e.affines.compose( F_G['Trans'],
+                                    F_G['Rotation'], zoom )
+        
+        B_i = F_G.dot( t_G_hom )[:3]
+        B_matrix.append( B_i )
+        
+    # for
+    B_matrix = np.array( B_matrix )
+    
+    b_fit = [Freg.dot( np.append( B, 1 ) )[:3] for B in B_matrix]
+    b_fit = np.array( b_fit )
+    
+    error = np.abs( ( b_fit - b ) / b )
+
+    print('Freg\n',Freg)
+    print()
+    
+    print( "b\n", b )
+    print()
+    
+    print( 'b_fit\n', b_fit )
+    print()
+    
+    print( 'Rel. Error\n', error )
+    print('Max Rel. Error:', np.max(error))
+    print('Avg. Rel. Error:', np.average(error))
+
+# debug_compute_Freg
+>>>>>>> af365aefebf722854f7c277421887649e3deb5c5
+
+    
 if __name__ == '__main__':
-#     debug_point_cloud_reg()
+#     debug_point_cloud()
+    debug_point_cloud_reg()
 #     debug_calibration()
+<<<<<<< HEAD
     #debug_undistort()
     #debug_correct_C()
     debug_compute_emfiducial()
     
+=======
+#     debug_undistort()
+#     debug_undistort_emfield()
+#     debug_improved_empivot_calib()
+#     debug_compute_Freg()
+    pass
+
+>>>>>>> af365aefebf722854f7c277421887649e3deb5c5
 # if
     

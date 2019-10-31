@@ -12,6 +12,7 @@ Created on Oct 17, 2019
 import transforms3d_extend
 import numpy as np
 from scipy.interpolate import BPoly
+from transforms3d_extend import skew
 
 
 def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
@@ -79,7 +80,7 @@ def generate_berntensor( X: np.ndarray, qmin: float, qmax: float, order: int ):
         X_py = X_prime[:, 1].reshape( ( -1, 1 ) )
         X_pz = X_prime[:, 2].reshape( ( -1, 1 ) )
         bern_matrix = np.zeros( ( len( X ), ( order + 1 ) ** 3 ) )
-        
+    
     # if
     
     else:
@@ -108,6 +109,120 @@ def generate_berntensor( X: np.ndarray, qmin: float, qmax: float, order: int ):
     return bern_matrix
     
 # generate_berntensor
+
+
+def point_cloud_reg_SVD( a, b ):
+    """ This function read the two coordinate systems and
+        calculate the point-to-point registration function.
+        This algorithm is explained in class and implemented as taught.
+        The relationship between a, b, and the result ("F") is
+            b = F a
+        This function will use an SVD in order to determine the corresponding
+        frame transformation from quaternions
+
+        @author: Dimitri Lezcano
+
+        @param a: the input, numpy array where the vectors are the rows of the
+                  matrix
+                  
+        @param b: the corresponding output, numpy array where the vectors are
+                  the rows of the matrix
+
+        @return: F which is a dictionary consist of 'Ratation' as a rotation
+                matrix and 'Trans' as a translational vector
+    
+    """
+    mean_a = np.mean( a, axis = 0 )
+    mean_b = np.mean( b, axis = 0 )
+    
+    # Compute for mean and subtract from a, b, respectively
+    a_hat = a - mean_a
+    b_hat = b - mean_b
+    
+    M = np.empty( ( 0, 4 ) )
+    for ai, bi in zip( a_hat, b_hat ):
+        top_left = 0
+        top_right = bi - ai
+        bottom_left = top_right.reshape( ( -1, 1 ) )
+        bottom_right = transforms3d_extend.skew( top_right )
+        top = np.append( top_left, top_right )
+        bottom = np.hstack( ( bottom_left, bottom_right ) )
+        Mi = np.vstack( ( top, bottom ) )
+        M = np.append( M, Mi, axis = 0 )
+    
+    # for
+    
+    u, s, v = np.linalg.svd( M )
+    
+    q = v[:, 3]
+    
+    R = transforms3d_extend.quaternions.quat2mat( q )
+    
+    p = mean_b - R.dot( mean_a )
+    
+    F = {'Rotation': R, 'Trans': p}
+    
+    return F
+    
+# point_cloud_reg_SVD
+
+
+def point_cloud_reg_Arun( a, b ):
+    """ This function read the two coordinate systems and
+        calculate the point-to-point registration function.
+        This algorithm is explained in class and implemented as taught.
+        The relationship between a, b, and the result ("F") is
+            b = F a
+        This function will use an Arun's method to determine the Rotation matrix.
+
+        @author: Dimitri Lezcano
+
+        @param a: the input, numpy array where the vectors are the rows of the
+                  matrix
+                  
+        @param b: the corresponding output, numpy array where the vectors are
+                  the rows of the matrix
+
+        @return: F which is a dictionary consist of 'Ratation' as a rotation
+                matrix and 'Trans' as a translational vector
+    
+    """
+    mean_a = np.mean( a, axis = 0 )
+    mean_b = np.mean( b, axis = 0 )
+    
+    # Compute for mean and subtract from a, b, respectively
+    a_hat = a - mean_a
+    b_hat = b - mean_b
+
+    # Compute for H
+    mult = np.multiply( a_hat, b_hat )
+    ab_xx = np.sum( mult[:, 0] )
+    ab_yy = np.sum( mult[:, 1] )    
+    ab_zz = np.sum( mult[:, 2] )
+
+    ab_xy = np.sum( np.multiply( a_hat[:, 0], b_hat[:, 1] ) )
+    ab_xz = np.sum( np.multiply( a_hat[:, 0], b_hat[:, 2] ) )
+    ab_yx = np.sum( np.multiply( a_hat[:, 1], b_hat[:, 0] ) )
+    ab_yz = np.sum( np.multiply( a_hat[:, 1], b_hat[:, 2] ) )
+    ab_zx = np.sum( np.multiply( a_hat[:, 2], b_hat[:, 0] ) )
+    ab_zy = np.sum( np.multiply( a_hat[:, 2], b_hat[:, 1] ) )
+    
+    H = np.array( [[ab_xx, ab_xy, ab_xz], [ab_yx, ab_yy, ab_yz],
+                   [ab_zx, ab_zy, ab_zz]] )
+    
+    u, s, v = np.linalg.svd( H )
+    
+    R = v.dot( u.T )
+    if np.linalg.det( R ) < 0: 
+        R[:, 3] *= -1
+        
+    p = mean_b - R.dot( mean_a )
+    
+    F = {'Rotation': R, 'Trans': p}
+    
+    return F
+    
+# ponit_cloud_reg_Arun
 
 
 def point_cloud_reg( a, b ):
@@ -168,7 +283,7 @@ def point_cloud_reg( a, b ):
     a_eigenVal, m_eigenVec = np.linalg.eig( G )
     
     # unit quaternion
-    q = m_eigenVec[np.argmax( a_eigenVal )]
+    q = m_eigenVec[:, np.argmax( a_eigenVal )]
     
     # Calculate R using unit quaternion
     R_00 = q[0] ** 2 + q[1] ** 2 - q[2] ** 2 - q[3] ** 2
@@ -237,7 +352,7 @@ def pointer_calibration( transformation_list: list ):
         # else
     # for
         
-    lst_sqr_soln, _, _, _ = np.linalg.lstsq( coeffs, translations, rcond = 0.5 )
+    lst_sqr_soln, resid, rnk, sng = np.linalg.lstsq( coeffs, translations, None )
     # p_ptr  is indexed 0-2
     # p_post is indexed 3-5
     
@@ -301,7 +416,7 @@ def scale_to_box( X: np.ndarray , qmin, qmax ):
 # scale_to_box
 
 
-def undistort( X: np.ndarray, Y :np.ndarray, order:int ):
+def undistort( X: np.ndarray, Y :np.ndarray, order:int, qmin = None, qmax = None ):
     """Function to undistort a calibration data set using Bernstein polynomials.
        Implemented for 3-D case only.
     
@@ -318,35 +433,21 @@ def undistort( X: np.ndarray, Y :np.ndarray, order:int ):
        
        @param order: The highest order that would like to be fitted of the 
                      Bernstein polynomial
+                     
+       @param qmin (optional):   a floating point number representing the min
+                                 value for scaling
+     
+       @param qmax (optional):   a floating point number representing the min
+                                 value for scaling
        
        @return: A Bernstein Polynomial object with the fitted coefficients
     
     """
-    qmin = np.min( X )
-    qmax = np.max( X )
-    
-    #====================== OLD METHOD: CAN REMOVE =============================
-    # X_prime, _, _ = scale_to_box( X , qmin, qmax )  # "normalized" vectors
-    # basis = genreate_Bpoly_basis(order)
-    # N = (order + 1) **3
-    # 
-    # bern_Matrix = np.zeros( ( len( X ), N ) )
-    # triple_basis = lambda i, j, k, x, y, z: (basis[i](x))*(basis[j](y))*(basis[k](z))
-    # 
-    # generate the Bernstein polynomial tensor
-    # bern_Matrix = np.empty( ( len( X ), N ) )
-    # for i in range( order + 1 ):
-    #     for j in range( order + 1 ):
-    #         for k in range( order + 1 ):
-    #             # compute b_i(x)*b_j(y)*b_k(z)
-    #             val = triple_basis( i, j, k, X_px, X_py, X_pz )
-    #             # performed for whole vector so add the entire row
-    #             bern_Matrix[:, i * ( order + 1 ) ** 2 + j * ( order + 1 ) + k] = val.reshape( -1 )
-    #         
-    #         # for
-    #     # for
-    # # for
-    #===========================================================================
+    if isinstance( qmin, type( None ) ):
+        qmin = np.min( X )
+        
+    if isinstance( qmax, type( None ) ):
+        qmax = np.max( X )
    
     bern_Matrix = generate_berntensor( X, qmin, qmax, order )
     

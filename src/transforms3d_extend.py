@@ -39,6 +39,7 @@ def skew( vector: np.ndarray ):
         
         @returns: a 3x3 skew-symmetric matrix given the 3-D vector
     """
+    vector = vector.astype(np.float)
     
     return np.array( [[0, -vector[2], vector[1]],
                       [vector[2], 0, -vector[0]],
