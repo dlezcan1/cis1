@@ -332,10 +332,10 @@ def debug_compute_Freg():
     
 if __name__ == '__main__':
 #     debug_point_cloud()
-#     debug_point_cloud_reg()
+    debug_point_cloud_reg()
 #     debug_calibration()
 #     debug_undistort()
-    debug_undistort_emfield()
+#     debug_undistort_emfield()
 #     debug_improved_empivot_calib()
 #     debug_compute_Freg()
     pass

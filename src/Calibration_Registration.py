@@ -150,7 +150,7 @@ def point_cloud_reg_SVD( a, b ):
     
     u, s, v = np.linalg.svd( M )
     
-    q = v[:,3]
+    q = v[:, 3]
     
     R = transforms3d_extend.quaternions.quat2mat( q )
     
@@ -162,7 +162,8 @@ def point_cloud_reg_SVD( a, b ):
     
 # point_cloud_reg_SVD
 
-def point_cloud_reg_Arun(a, b):
+
+def point_cloud_reg_Arun( a, b ):
     """ This function read the two coordinate systems and
         calculate the point-to-point registration function.
         This algorithm is explained in class and implemented as taught.
@@ -205,11 +206,11 @@ def point_cloud_reg_Arun(a, b):
     H = np.array( [[ab_xx, ab_xy, ab_xz], [ab_yx, ab_yy, ab_yz],
                    [ab_zx, ab_zy, ab_zz]] )
     
-    u, s, v = np.linalg.svd(H)
+    u, s, v = np.linalg.svd( H )
     
-    R = v.dot(u.T)
-    if np.linalg.det(R) < 0: 
-        R[:,3] *= -1
+    R = v.dot( u.T )
+    if np.linalg.det( R ) < 0: 
+        R[:, 3] *= -1
         
     p = mean_b - R.dot( mean_a )
     
@@ -218,6 +219,7 @@ def point_cloud_reg_Arun(a, b):
     return F
     
 # ponit_cloud_reg_Arun
+
 
 def point_cloud_reg( a, b ):
     """ This function read the two coordinate systems and
@@ -277,7 +279,7 @@ def point_cloud_reg( a, b ):
     a_eigenVal, m_eigenVec = np.linalg.eig( G )
     
     # unit quaternion
-    q = m_eigenVec[np.argmax( a_eigenVal )]
+    q = m_eigenVec[:, np.argmax( a_eigenVal )]
     
     # Calculate R using unit quaternion
     R_00 = q[0] ** 2 + q[1] ** 2 - q[2] ** 2 - q[3] ** 2
