@@ -34,9 +34,10 @@ def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
     # x, y, z = scale_to_box( vector, qmin, qmax )[0]
     scaled_vec = scale_to_box( vector, qmin, qmax )[0]
     
-    x = scaled_vec[:,0]
-    y = scaled_vec[:,1]
-    z = scaled_vec[:,2]
+    x = scaled_vec[0]
+    y = scaled_vec[1]
+    z = scaled_vec[2]
+    print("x,y,z : ", x, y, z)
     assert ( x <= 1 and x >= 0 )
     assert ( y <= 1 and y >= 0 )
     assert ( z <= 1 and z >= 0 )

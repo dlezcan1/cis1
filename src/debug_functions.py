@@ -228,12 +228,27 @@ def debug_correct_C():
 
     print(25*"=", " Debugging finished ", 25*"=")
     
+# debug_correct_C
+
+def debug_compute_emfiducial():
+    print(25*'=', ' compute fiducial points in em coord system ', 25*'=')
+
+    file_name_empivot = "../pa1-2_data/pa2-debug-a-empivot.txt"
+    file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
+    file_name_emfiducials = "../pa1-2_data/pa2-debug-a-em-fiducialss.txt"
+    file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
+    print("reading em fiducial data...")
+    _, t_post = Program2.improved_empivot_calib( file_name_empivot)
+    coef, qmin, qmax = Program2.undistort_emfield( file_name_calreadings, file_name_output1, 5)
+    Program2.compute_fiducials_em(file_name_emfiducials, coef, qmin, qmax, t_post)
+
 
 if __name__ == '__main__':
 #     debug_point_cloud_reg()
 #     debug_calibration()
     #debug_undistort()
-    debug_correct_C()
+    #debug_correct_C()
+    debug_compute_emfiducial()
     
 # if
     

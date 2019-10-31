@@ -46,7 +46,7 @@ def improved_empivot_calib( filename_empivot: str ):
     filename_output1 = file_fmt.format( data_type, letter, 'output1' )
     
     # find the distortion coefficients
-    coeffs, qmin, qmax = undistort_emfield( filename_calreadings, filename_output1, 2 )
+    coeffs, qmin, qmax = undistort_emfield( filename_calreadings, filename_output1, 5 )
     
     # read in EM pivot data
     empivot = open_files.open_empivot( filename_empivot )
@@ -139,6 +139,75 @@ def undistort_emfield( filename_calreadings, filename_output1: str, order_fit: i
     return coeffs, qmin, qmax
     
 # undistort_emfield
+
+def compute_fiducials_em(filename_emfiducials : str, coef : np.ndarray, qmin, qmax, t_post):
+    """ This functions corrects the C values from calreading txt file with respect to
+        EM tracker base coordinate system.
+
+        @author: Hyunwoo Song
+
+        @param filename_em_fiducials: string of the filename to be read
+
+        @return: position(x,y,z) of the fiducial points
+    """
+
+    name_pattern = r'pa(.)-(debug|unknown)-(.)-em-fiducialss.txt'
+    res_emfiducials = re.search(name_pattern, filename_emfiducials)
+    assign_num, data_type, letter = res_emfiducials.groups()
+    outfile = "../pa{0}_results/pa{0}-{1}-{2}-output{0}.txt".format(assign_num,
+                                                                    data_type,
+                                                                    letter)
+
+    em_fiducials = open_files.open_emfiducials(filename_emfiducials)
+    print("em_fiducials: \n", em_fiducials)
+
+    em_fiducials_fixed = []
+    for idx, frames in enumerate(em_fiducials):
+        print('frame %d/%d' %(idx+1, len(em_fiducials.keys())))
+        emfiducials_distorted = em_fiducials[frames]
+
+        retval = np.array([cr.correctDistortion(coef, fiducial_tmp, qmin, qmax) for fiducial_tmp in emfiducials_distorted])
+    
+        em_fiducials_fixed.append( retval )
+
+    print("em_fiducials_fixed: \n",em_fiducials_fixed)
+
+    # compute the fiducial point -> similar to Program1.compute_dimple
+    G_first = em_fiducials_fixed[0]
+    G_zero = np.mean(G_first, axis=0)
+    g_j = G_first - G_zero
+
+    Trans_empivot = []
+    zoom = np.zeros(3)
+    for idx, frame in enumerate(em_fiducials_fixed):
+        F_G = cr.point_cloud_reg(g_j, frame)
+        F_G = tf3e.affines.compose(F_G['Trans'],
+                                   F_G['Rotation'], zoom)
+        Trans_empivot.append(F_G)
+    print("Trans_empivot \n", Trans_empivot)
+    
+    print("t_post : \n", t_post)
+
+
+
+
+
+    ## write corrected C to output1.txt 
+    #with open(outfile, 'w+') as writestream:
+    #    outname = outfile.split( '/' )[-1]
+    #    writestream.write( "{0}, {1}, {2}\n".format(len( Cal_readings['frame1']['vec_c'] ),
+    #                                                len( Cal_readings.keys() ),
+    #                                                outname ) ) # first line
+    #    #write the undistorted C
+    #    for frame in C_undistorted:
+    #        for c in frame:
+    #            writestream.write( "{0:.2f}, {1:.2f}, {2:.2f} \n".format(*c))
+
+    #print("File '{}' written.".format(outfile))
+
+    return 0
+
+# compute_fiducials_em
 
 def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
     """ This functions corrects the C values from calreading txt file with respect to
