@@ -358,9 +358,42 @@ def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str ):
 
 # compute_Freg
 
-def compute_test_points(filename_emnav:str):
+def compute_test_points(filename_emnav:str, coeffs, qmin, qmax,t_G, Freg):
     G_coords = open_files.open_emnav(filename_emnav)
-    print(G_coords)
+    print("G_coords \n", G_coords)
+    G_emnav_calib = {}
+    for frame in G_coords.keys():
+        G_tmp = G_coords[frame]
+        G_calib = [cr.correctDistortion( coeffs, g, qmin, qmax) for g in G_tmp]
+        G_emnav_calib[frame] = np.array(G_calib)
+    print("G_emnav_calib \n", G_emnav_calib)
+    print("diff \n", G_coords['frame1'] - G_emnav_calib['frame1'])
+
+    G_first = G_emnav_calib['frame1']
+    G_zero =np.mean( G_first, axis = 0 )
+    g_j = G_first - G_zero
+    zoom = np.ones(3)
+
+    t_G_hom = np.append( t_G, 1 )  # homogeneous representation
+    V_matrix = []
+    for frame in G_emnav_calib.keys():
+        G = G_emnav_calib[frame]
+
+        F_G = cr.point_cloud_reg( g_j, G)
+        #homogernous representation
+        F_G = tf3e.affines.compose( F_G['Trans'],
+                                    F_G['Rotation'], zoom )
+
+        V_tmp = F_G.dot( t_G_hom)[:3]
+        V_matrix.append(V_tmp)
+
+    V_matrix = np.array(V_matrix)
+    print("V_matrix (EM coordinate of pointer tip) \n", V_matrix)
+    print("Freg \n", Freg[:3])
+    #compute test points
+    v = Freg[:3].dot(V_matrix)
+    print("v (CT coordinate of pointer tip) \n", v)
+
 
     return 0
 

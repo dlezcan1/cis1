@@ -376,7 +376,28 @@ def debug_compute_Freg():
 
 def debug_compute_test_points():
     file_name_emnav = "../pa1-2_data/pa2-debug-a-EM-nav.txt"
-    Program2.compute_test_points(file_name_emnav)
+    filename_calreadings = '../pa1-2_data/pa2-debug-a-calreadings.txt'
+    filename_output1 = '../pa1-2_data/pa2-debug-a-output1.txt'
+    filename_ctfiducials = '../pa1-2_data/pa2-debug-a-ct-fiducials.txt'
+    filename_emfiducials = '../pa1-2_data/pa2-debug-a-em-fiducialss.txt'
+    filename_empivot = '../pa1-2_data/pa2-debug-a-empivot.txt'
+    
+    # compute Freg and obtain b coords
+    print("compute Freg")
+    Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials )
+    
+    print("undistort emfield")
+    coeffs, qmin, qmax = Program2.undistort_emfield(filename_calreadings, filename_output1, 5)
+
+    print("compute pointer tip position")
+    t_G, _ = Program2.improved_empivot_calib(filename_empivot)
+
+    print("compute test points")
+    Program2.compute_test_points(file_name_emnav, coeffs, qmin, qmax, t_G, Freg)
+
+    print("open ct fiducials")
+    ct_fiducials = open_files.open_ctfiducials(filename_ctfiducials)
+    print("ct fiducials \n", ct_fiducials)
     
 
     
