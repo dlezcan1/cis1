@@ -47,7 +47,7 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
     name_pattern = r'pa(.)-(debug|unknown)-(.)-calbody.txt'
     res_calbody = re.search( name_pattern, filename_calbody )
     assign_num, data_type, letter = res_calbody.groups()
-    outfile = "../pa{0}_results/pa{0}-{1}-{2}-output{0}.txt".format( assign_num,
+    outfile = "../pa{0}_results/pa{0}-{1}-{2}-output1.txt".format( assign_num,
                                                                     data_type,
                                                                     letter )
     
@@ -102,7 +102,7 @@ def compute_Cexpected( filename_calbody: str, filename_calreading: str ):
                                                    len( frames ),
                                                    outname ) )  # first line
         
-        #writestream.write("0, 0, 0\n0, 0, 0\n") # write place-holders for 
+        writestream.write("0, 0, 0\n0, 0, 0\n") # write place-holders for 
                                                 # post position
         # write the C_expected values 
         for C_expected in C_expected_frames:
@@ -250,19 +250,20 @@ def write_data(outfile, EM_probe_pos, OPT_probe_pos):
                               optical pivot post's position.
     """
     
-    line_idx = 1
-    lines = None
+#     line_idx = 1
+#     lines = None
     insertline_em = "{0:.2f}, {1: .2f}, {2: .2f}".format(*EM_probe_pos)
     insertline_opt = "{0: .2f}, {1: .2f}, {2: .2f}".format(*OPT_probe_pos)
     #insertline_em = ", ".join(str(x) for x in EM_probe_pos)
     #insertline_opt = ", ".join(str(x) for x in OPT_probe_pos)
-    insertline = "\n".join([insertline_em, insertline_opt]) + "\n"
+#     insertline = "\n".join([insertline_em, insertline_opt]) + "\n"
 
     with open(outfile, 'r') as resultstream:
         outname = outfile.split('/')[-1]
         lines = resultstream.readlines()
 
-    lines.insert(line_idx, insertline)
+    lines[1] = insertline_em
+    lines[2] = insertline_opt
 
     with open(outfile, 'w+') as resultstream:
         resultstream.writelines(lines)

@@ -13,7 +13,7 @@ import glob
 import open_files
 import transforms3d_extend as tf3e 
 import re
-from Program1 import compute_Cexpected
+from Program1 import compute_Cexpected, write_data, perform_optical_pivot
 
 
 def improved_empivot_calib( filename_empivot: str , debug: bool = True ):
@@ -296,4 +296,28 @@ if __name__ == '__main__':
     file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
     coef, qmin, qmax = undistort_emfield( file_name_calreadings, file_name_output1, 2 )
     compute_fiducial_pos( file_name_emfiducial, coef, qmin, qmax )
+    
+    # main program
+    calbody_list = sorted( glob.glob( "../pa1-2_data/*pa2*calbody.txt" ) )
+    calreading_list = sorted( glob.glob( "../pa1-2_data/*pa2*calreadings.txt" ) )
+    empivot_list = sorted( glob.glob( "../pa1-2_data/*pa2*empivot.txt" ) )
+    optpivot_list = sorted( glob.glob( "../pa1-2_data/*pa2*optpivot.txt" ) )
+    
+    for calbody, calreadings, empivot, optpivot in zip( calbody_list,
+                                                       calreading_list,
+                                                       empivot_list,
+                                                       optpivot_list ):
+        
+        name_pattern = r'pa2-(debug|unknown)-(.)-calbody.txt'
+        res_calbody = re.search( name_pattern, calbody )
+        data_type, letter = res_calbody.groups()
+        print( "Data set: {0}-{1}".format( data_type, letter ) )
+        # compute C_expected and write output1
+        C_expected, outfile = compute_Cexpected( calbody, calreadings )
+        _, t_opt_post = perform_optical_pivot( calbody, optpivot )
+        _, t_em_post = improved_empivot_calib( empivot, False )
+        write_data( outfile, t_em_post, t_opt_post )
+
+        print( 'Completed\n' )
+    
     pass
