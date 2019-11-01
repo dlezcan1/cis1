@@ -181,13 +181,13 @@ def compute_fiducial_pos( filename_em_fiducials : str, coef : np.ndarray, qmin, 
         @return: position(x,y,z) of the fiducial points
     """
     G_coords = open_files.open_emfiducials( filename_em_fiducials )
-    print( "G_coords shape: ", np.shape( G_coords ) )
-    print( "G_coords \n", G_coords )
+#     print( "G_coords shape: ", np.shape( G_coords ) )
+#     print( "G_coords \n", G_coords )
 
     G_tmp = G_coords['frame1']
-    print( "G_tmp \n", G_tmp )
+#     print( "G_tmp \n", G_tmp )
     retval = cr.correctDistortion( coef, G_tmp, qmin, qmax )
-    print( "retval \n", retval )
+#     print( "retval \n", retval )
 
     fiducial_pos = 0
     return fiducial_pos
@@ -317,7 +317,6 @@ if __name__ == '__main__':
         _, t_opt_post = perform_optical_pivot( calbody, optpivot )
         _, t_em_post = improved_empivot_calib( empivot, False )
         write_data( outfile, t_em_post, t_opt_post )
-
         print( 'Completed\n' )
     
     pass
