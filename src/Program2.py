@@ -159,14 +159,12 @@ def undistort_emfield( filename_calreadings, filename_output1: str, order_fit: i
     
 # undistort_emfield
 
-<<<<<<< HEAD
-def compute_fiducials_em(filename_emfiducials : str, coef : np.ndarray, qmin, qmax, t_post):
-    """ This functions corrects the C values from calreading txt file with respect to
-=======
+#def compute_fiducials_em(filename_emfiducials : str, coef : np.ndarray, qmin, qmax, t_post):
+#    """ This functions corrects the C values from calreading txt file with respect to
+#=======
 
 def compute_fiducial_pos( filename_em_fiducials : str, coef : np.ndarray, qmin, qmax ):
     """ This functions computes the position of fiducial points with respect to
->>>>>>> af365aefebf722854f7c277421887649e3deb5c5
         EM tracker base coordinate system.
 
         @author: Hyunwoo Song
@@ -175,16 +173,15 @@ def compute_fiducial_pos( filename_em_fiducials : str, coef : np.ndarray, qmin, 
 
         @return: position(x,y,z) of the fiducial points
     """
-<<<<<<< HEAD
 
     name_pattern = r'pa(.)-(debug|unknown)-(.)-em-fiducialss.txt'
-    res_emfiducials = re.search(name_pattern, filename_emfiducials)
+    res_emfiducials = re.search(name_pattern, filename_em_fiducials)
     assign_num, data_type, letter = res_emfiducials.groups()
     outfile = "../pa{0}_results/pa{0}-{1}-{2}-output{0}.txt".format(assign_num,
                                                                     data_type,
                                                                     letter)
 
-    em_fiducials = open_files.open_emfiducials(filename_emfiducials)
+    em_fiducials = open_files.open_emfiducials(filename_em_fiducials)
     print("em_fiducials: \n", em_fiducials)
 
     em_fiducials_fixed = []
@@ -212,11 +209,6 @@ def compute_fiducial_pos( filename_em_fiducials : str, coef : np.ndarray, qmin, 
         Trans_empivot.append(F_G)
     print("Trans_empivot \n", Trans_empivot)
     
-    print("t_post : \n", t_post)
-
-
-
-
 
     ## write corrected C to output1.txt 
     #with open(outfile, 'w+') as writestream:
@@ -249,7 +241,7 @@ def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
     name_pattern = r'pa(.)-(debug|unknown)-(.)-calreadings.txt'
     res_calreading = re.search(name_pattern, filename_calreadings)
     assign_num, data_type, letter = res_calreading.groups()
-    outfile = "../pa{0}_results/pa{0}-{1}-{2}-output{0}.txt".format(assign_num,
+    outfile = "../pa{0}_results/pa{0}-{1}-{2}-output1.txt".format(assign_num,
                                                                     data_type,
                                                                     letter)
 
@@ -258,18 +250,11 @@ def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
     for idx, frames in enumerate(Cal_readings):
         print('frame %d/%d' %(idx+1, len(Cal_readings.keys())))
         C_distorted = Cal_readings[frames]['vec_c']
-        #print("C_distorted shape: ", np.shape(C_distorted))
-        #print("C_distorted: \n", C_distorted)
 
         retval = np.array([cr.correctDistortion(coef, C_tmp, qmin, qmax) for C_tmp in C_distorted])
-        #print("retval shape: ", np.shape(retval))
-        #print("retval : \n",retval)
-    
+       
         C_undistorted.append( retval )
-
-    #print("C_undistorted \n", C_undistorted)
-    #print("C_undistorted shape: ", np.shape(C_undistorted))
-
+        
     # write corrected C to output1.txt 
     with open(outfile, 'w+') as writestream:
         outname = outfile.split( '/' )[-1]
@@ -280,16 +265,6 @@ def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
         for frame in C_undistorted:
             for c in frame:
                 writestream.write( "{0:.2f}, {1:.2f}, {2:.2f} \n".format(*c))
-=======
-    G_coords = open_files.open_emfiducials( filename_em_fiducials )
-    print( "G_coords shape: ", np.shape( G_coords ) )
-    print( "G_coords \n", G_coords )
-
-    G_tmp = G_coords['frame1']
-    print( "G_tmp \n", G_tmp )
-    retval = cr.correctDistortion( coef, G_tmp, qmin, qmax )
-    print( "retval \n", retval )
->>>>>>> af365aefebf722854f7c277421887649e3deb5c5
 
     print("File '{}' written.".format(outfile))
 
@@ -383,15 +358,17 @@ def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str ):
 
 # compute_Freg
 
+def compute_test_points(filename_emnav:str):
+    G_coords = open_files.open_emnav(filename_emnav)
+    print(G_coords)
+
+    return 0
 
 if __name__ == '__main__':
-<<<<<<< HEAD
 
-=======
     file_name_emfiducial = "../pa1-2_data/pa2-debug-a-em-fiducialss.txt"
     file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
     file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
     coef, qmin, qmax = undistort_emfield( file_name_calreadings, file_name_output1, 2 )
     compute_fiducial_pos( file_name_emfiducial, coef, qmin, qmax )
->>>>>>> af365aefebf722854f7c277421887649e3deb5c5
     pass

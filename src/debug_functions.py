@@ -195,7 +195,6 @@ def debug_undistort():
     
 # debug_undistort
 
-<<<<<<< HEAD
 def debug_correct_C():
     print(25*"=", " debug_correct_C " , 25*"=")
 
@@ -209,8 +208,7 @@ def debug_correct_C():
         C_expected.append(C_exp_data[frame])
 
     #print("C_expected(first frame): \n", C_expected[0])
-    #print()
-
+    
     # Dewarping C
     print("dewarping C...")
     coef, qmin, qmax = Program2.undistort_emfield( file_name_calreadings, file_name_output1, 5)
@@ -240,9 +238,8 @@ def debug_compute_emfiducial():
     print("reading em fiducial data...")
     _, t_post = Program2.improved_empivot_calib( file_name_empivot)
     coef, qmin, qmax = Program2.undistort_emfield( file_name_calreadings, file_name_output1, 5)
-    Program2.compute_fiducials_em(file_name_emfiducials, coef, qmin, qmax, t_post)
+    #Program2.compute_fiducials_em(file_name_emfiducials, coef, qmin, qmax, t_post)
 
-=======
 def debug_undistort_emfield():
     """Function to debug 'Program2.undistort_emfield' function"""
     filename_calreadings = '../pa1-2_data/pa2-debug-a-calreadings.txt'
@@ -376,25 +373,25 @@ def debug_compute_Freg():
     print('Avg. Rel. Error:', np.average(error))
 
 # debug_compute_Freg
->>>>>>> af365aefebf722854f7c277421887649e3deb5c5
+
+def debug_compute_test_points():
+    file_name_emnav = "../pa1-2_data/pa2-debug-a-EM-nav.txt"
+    Program2.compute_test_points(file_name_emnav)
+    
 
     
 if __name__ == '__main__':
 #     debug_point_cloud()
-    debug_point_cloud_reg()
+    #debug_point_cloud_reg()
 #     debug_calibration()
-<<<<<<< HEAD
     #debug_undistort()
-    #debug_correct_C()
-    debug_compute_emfiducial()
+#    debug_correct_C()
+    #debug_compute_emfiducial()
     
-=======
-#     debug_undistort()
 #     debug_undistort_emfield()
 #     debug_improved_empivot_calib()
-#     debug_compute_Freg()
-    pass
+    #debug_compute_Freg()
+    debug_compute_test_points()
 
->>>>>>> af365aefebf722854f7c277421887649e3deb5c5
 # if
     
