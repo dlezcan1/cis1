@@ -47,7 +47,7 @@ def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
     
     return retval
 
-# BPoly3D
+# correctDistortion
 
 
 def generate_berntensor( X: np.ndarray, qmin: float, qmax: float, order: int ):

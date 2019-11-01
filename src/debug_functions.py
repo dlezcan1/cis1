@@ -261,6 +261,7 @@ def debug_compute_Freg():
     file_fmt = '../pa1-2_data/pa2-{0}-{1}-{2}.txt'
     res_empivot = re.search( file_pattern, filename_ctfiducials )
     data_type, letter = res_empivot.groups()
+    print('Processing file group: {0}-{1}'.format(data_type, letter))
     
     # generate related files
     filename_empivot = file_fmt.format( data_type, letter, 'empivot' )
@@ -269,7 +270,7 @@ def debug_compute_Freg():
     fid_em = open_files.open_emfiducials( filename_emfiducials )
     
     # compute Freg and obtain b coords
-    Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials )
+    Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials, True)
     b = open_files.open_ctfiducials( filename_ctfiducials )
     
     # perform empivot calibration
@@ -332,12 +333,12 @@ def debug_compute_Freg():
     
 if __name__ == '__main__':
 #     debug_point_cloud()
-    debug_point_cloud_reg()
+#     debug_point_cloud_reg()
 #     debug_calibration()
 #     debug_undistort()
 #     debug_undistort_emfield()
 #     debug_improved_empivot_calib()
-#     debug_compute_Freg()
+    debug_compute_Freg()
     pass
 
 # if
