@@ -12,7 +12,6 @@ Created on Oct 17, 2019
 import transforms3d_extend
 import numpy as np
 from scipy.interpolate import BPoly
-from transforms3d_extend import skew
 
 
 def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
@@ -343,7 +342,7 @@ def pointer_calibration( transformation_list: list ):
         
         else:  # add to the list
             coeffs = np.vstack( ( coeffs, C ) )
-            translations = np.hstack( ( translations, -p ) )
+            translations = np.append(translations, -p)
             
         # else
     # for

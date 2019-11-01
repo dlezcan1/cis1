@@ -284,13 +284,13 @@ def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str , debug: 
     Freg = cr.point_cloud_reg( B_matrix, fid_ct )
     Freg = tf3e.affines.compose( Freg['Trans'], Freg['Rotation'],
                                  zoom )
-    
     return Freg
 
 # compute_Freg
 
 
 if __name__ == '__main__':
+    # test compute_fiducial_pos
     file_name_emfiducial = "../pa1-2_data/pa2-debug-a-em-fiducialss.txt"
     file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
     file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
