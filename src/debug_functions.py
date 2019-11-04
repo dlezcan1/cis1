@@ -139,7 +139,8 @@ def debug_calibration():
     print()
     F_G = []
     for mIdx in range( no_mat ):
-        tmp_rot = np.random.rand( 3, 3 )
+        q_rand = np.random.randn( 4 )
+        tmp_rot = tf3e.quaternions.quat2mat(q_rand)
         tmp_trans = p_post - tmp_rot.dot( p_ptr )
         F_tmp = tf3e.affines.compose( tmp_trans, tmp_rot, np.ones( 3 ) )
         F_G.append( F_tmp )
@@ -160,8 +161,8 @@ def debug_calibration():
 def debug_undistort():
     """This function is to debug the 'undistort' function"""
     X = np.random.randn( 6, 3 )
-    c = np.random.randn(10)
-    Y = np.poly1d(c)(X)
+    c = np.random.randn( 10 )
+    Y = np.poly1d( c )( X )
      
     #==========================================================================
     # for a 5th order Bernstein polynomial, the value seems to 
@@ -175,8 +176,8 @@ def debug_undistort():
     errors = np.abs( Y_fit - Y )  # / Y
     
     print( 20 * '=', "Debug 'undistort'", 20 * '=' )
-    print('Coefficients of random polynomial 10th order polynomial')
-    print(c)
+    print( 'Coefficients of random polynomial 10th order polynomial' )
+    print( c )
     print()
     
     print( "X" )
@@ -195,6 +196,7 @@ def debug_undistort():
     
 # debug_undistort
 
+
 def debug_undistort_emfield():
     """Function to debug 'Program2.undistort_emfield' function"""
     filename_calreadings = '../pa1-2_data/pa2-debug-a-calreadings.txt'
@@ -202,7 +204,7 @@ def debug_undistort_emfield():
     C_exp_data = open_files.open_output1( filename_output1 )['C_expected']
     calread = open_files.open_calreadings( filename_calreadings )
     
-    coeffs, qmin, qmax = Program2.undistort_emfield(filename_calreadings, filename_output1, 5)
+    coeffs, qmin, qmax = Program2.undistort_emfield( filename_calreadings, filename_output1, 5 )
     
     # read in only the C_readings
     C_read = []
@@ -221,21 +223,21 @@ def debug_undistort_emfield():
     C_read = np.array( C_read ).reshape( ( -1, 3 ) )
     C_expected = np.array( C_expected ).reshape( ( -1, 3 ) )
     
-    C_read_undistorted = [cr.correctDistortion(coeffs, c_i, qmin, qmax) 
+    C_read_undistorted = [cr.correctDistortion( coeffs, c_i, qmin, qmax ) 
                           for c_i in C_read]
-    C_read_undistorted = np.array(C_read_undistorted)
+    C_read_undistorted = np.array( C_read_undistorted )
     
-    error = np.abs((C_expected-C_read_undistorted)/C_expected)
+    error = np.abs( ( C_expected - C_read_undistorted ) / C_expected )
     
-    print('C_read\n',C_read)
+    print( 'C_read\n', C_read )
     print()
     
-    print('C_expected\n',C_expected)
-    print('C_undistorted\n',C_read_undistorted)
+    print( 'C_expected\n', C_expected )
+    print( 'C_undistorted\n', C_read_undistorted )
     print()
-    print('Rel. Error\n',error)
-    print('Max Rel. Error:', np.max(error))
-    print('Avg. Rel. Error:', np.average(error))
+    print( 'Rel. Error\n', error )
+    print( 'Max Rel. Error:', np.max( error ) )
+    print( 'Avg. Rel. Error:', np.average( error ) )
         
 # debug_undistort_emfield
 
@@ -261,7 +263,7 @@ def debug_compute_Freg():
     file_fmt = '../pa1-2_data/pa2-{0}-{1}-{2}.txt'
     res_empivot = re.search( file_pattern, filename_ctfiducials )
     data_type, letter = res_empivot.groups()
-    print('Processing file group: {0}-{1}'.format(data_type, letter))
+    print( 'Processing file group: {0}-{1}'.format( data_type, letter ) )
     
     # generate related files
     filename_empivot = file_fmt.format( data_type, letter, 'empivot' )
@@ -270,7 +272,7 @@ def debug_compute_Freg():
     fid_em = open_files.open_emfiducials( filename_emfiducials )
     
     # compute Freg and obtain b coords
-    Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials, True)
+    Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials, True )
     b = open_files.open_ctfiducials( filename_ctfiducials )
     
     # perform empivot calibration
@@ -315,7 +317,7 @@ def debug_compute_Freg():
     
     error = np.abs( ( b_fit - b ) / b )
 
-    print('Freg\n',Freg)
+    print( 'Freg\n', Freg )
     print()
     
     print( "b\n", b )
@@ -325,8 +327,8 @@ def debug_compute_Freg():
     print()
     
     print( 'Rel. Error\n', error )
-    print('Max Rel. Error:', np.max(error))
-    print('Avg. Rel. Error:', np.average(error))
+    print( 'Max Rel. Error:', np.max( error ) )
+    print( 'Avg. Rel. Error:', np.average( error ) )
 
 # debug_compute_Freg
 
@@ -334,11 +336,11 @@ def debug_compute_Freg():
 if __name__ == '__main__':
 #     debug_point_cloud()
 #     debug_point_cloud_reg()
-#     debug_calibration()
+    debug_calibration()
 #     debug_undistort()
 #     debug_undistort_emfield()
 #     debug_improved_empivot_calib()
-    debug_compute_Freg()
+#     debug_compute_Freg()
     pass
 
 # if
