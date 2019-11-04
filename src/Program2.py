@@ -302,9 +302,9 @@ if __name__ == '__main__':
     calreading_list = sorted( glob.glob( "../pa1-2_data/*pa2*calreadings.txt" ) )
     empivot_list = sorted( glob.glob( "../pa1-2_data/*pa2*empivot.txt" ) )
     optpivot_list = sorted( glob.glob( "../pa1-2_data/*pa2*optpivot.txt" ) )
-    emfiducial_list = sorted( glob.glob( "../pa1-2_data/*pa2*emfiducialss.txt" ) )
+    emfiducial_list = sorted( glob.glob( "../pa1-2_data/*pa2*em-fiducialss.txt" ) )
     emnav_list = sorted( glob.glob( "../pa1-2_data/*pa2*EM-nav.txt" ) )
-    ctfid_list = sorted( glob.glob( "../pa1-2_data/*pa2*ctfiducials.txt" ) )
+    ctfid_list = sorted( glob.glob( "../pa1-2_data/*pa2*ct-fiducials.txt" ) )
     
     for calbody, calreadings, empivot, optpivot, emnav, ctfid, emfid in zip( calbody_list,
                                                                              calreading_list,
