@@ -302,11 +302,17 @@ if __name__ == '__main__':
     calreading_list = sorted( glob.glob( "../pa1-2_data/*pa2*calreadings.txt" ) )
     empivot_list = sorted( glob.glob( "../pa1-2_data/*pa2*empivot.txt" ) )
     optpivot_list = sorted( glob.glob( "../pa1-2_data/*pa2*optpivot.txt" ) )
+    emfiducial_list = sorted( glob.glob( "../pa1-2_data/*pa2*emfiducialss.txt" ) )
+    emnav_list = sorted( glob.glob( "../pa1-2_data/*pa2*EM-nav.txt" ) )
+    ctfid_list = sorted( glob.glob( "../pa1-2_data/*pa2*ctfiducials.txt" ) )
     
-    for calbody, calreadings, empivot, optpivot in zip( calbody_list,
-                                                       calreading_list,
-                                                       empivot_list,
-                                                       optpivot_list ):
+    for calbody, calreadings, empivot, optpivot, emnav, ctfid, emfid in zip( calbody_list,
+                                                                             calreading_list,
+                                                                             empivot_list,
+                                                                             optpivot_list,
+                                                                             emnav_list,
+                                                                             ctfid_list,
+                                                                             emfiducial_list ):
         
         name_pattern = r'pa2-(debug|unknown)-(.)-calbody.txt'
         res_calbody = re.search( name_pattern, calbody )
