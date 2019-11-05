@@ -24,23 +24,11 @@ def debug_point_cloud():
     print( 20 * '=', 'Functionality Check', 20 * '=' )
     file_a_calbody = '../pa1-2_data/pa1-debug-a-calbody.txt'
     calbody = open_files.open_calbody( file_a_calbody )
-    print( "data type: ", calbody['vec_a'].dtype )
-    # numpy float64
-    # calbody = open_files.open_calbody_npfloat(file_a_calbody)
-    
-    print( "data type: ", calbody['vec_a'].dtype )
-    print( "Calbody:\n", calbody['vec_a'] )
-    
+   
     file_a_calreadings = '../pa1-2_data/pa1-debug-a-calreadings.txt'
     calreadings = open_files.open_calreadings( file_a_calreadings )
-    # numpy float 64
-    # calreadings = open_files.open_calreadings_npfloat(file_a_calreadings)
-
-    print( "data type: ", calreadings['frame1']['vec_a'].dtype )
-    print( "Calreadings:\n", calreadings['frame1']['vec_a'] )
-    
+   
     F = cr.point_cloud_reg( calbody['vec_a'], calreadings['frame1']['vec_a'] )
-    print( "F: \n", F )
 
     b_calc = np.dot( calbody['vec_a'], F['Rotation'] ) + F['Trans']
     print( "b_origin: \n", calreadings['frame1']['vec_a'] )
@@ -95,15 +83,11 @@ def debug_point_cloud_reg():
     error_p = np.round( np.abs( p - F['Trans'] ), 2 )
     error_b = np.round( np.abs( ( b - b_fit ) ), 2 )
     
-    print( 25 * "*", 'Test "point_cloud_reg"', 25 * '*' )
+    print( 25 * "=", 'Test "point_cloud_reg"', 25 * '=' )
     print( 'Random quaternion:', q )
     print( 'Associated Rotation Matrix:\n ', R )
-    print( "Registered Rotation Matrix:\n", F['Rotation'] )
-    print( "R.R^T\n", np.round( R.dot( R.T ), 2 ) )
-    print()
     
     print( "Random Translation vector:\n", p )
-    print( "Registered Translation vector:\n", F['Trans'] )
     print()
     
     print( 'Random points generated\n', a )
@@ -405,12 +389,11 @@ def debug_compute_test_points():
 # debug_compute_test_points
     
 if __name__ == '__main__':
-#     debug_point_cloud()
+    #debug_point_cloud()
     #debug_point_cloud_reg()
     #debug_calibration()
     #debug_undistort()
     #debug_correct_C()
-    #debug_compute_emfiducial()
     #debug_undistort_emfield()
     #debug_improved_empivot_calib()
     #debug_compute_Freg()
