@@ -11,10 +11,10 @@ import glob
 import open_files
 import transforms3d_extend as tf3e 
 import re
-from Program1 import compute_Cexpected
+from Program1 import compute_Cexpected, write_data, perform_optical_pivot
 
 
-def improved_empivot_calib( filename_empivot: str ):
+def improved_empivot_calib( filename_empivot: str , debug: bool = True ):
     """This function is to provide an imporved pivot calibration of the EM
        probe using the undistort function provided in Calibration_Registration
        to remove distortion in the EM field.
@@ -28,6 +28,9 @@ def improved_empivot_calib( filename_empivot: str ):
        @param filename_empivot:  a string representing the data file for the 
                                  EM pivot tracking to be read in.
                                  
+       @param debug:             A boolean representing if should use debug
+                                 output1 files or generated
+                                 
        @return: t_g, t_post
                 t_G:    the pointer's tip location
                 t_post: the post position the pointer pivoted on.
@@ -39,7 +42,14 @@ def improved_empivot_calib( filename_empivot: str ):
     res_empivot = re.search( file_pattern, filename_empivot )
     data_type, letter = res_empivot.groups()
     filename_calreadings = file_fmt.format( data_type, letter, 'calreadings' )
-    filename_output1 = file_fmt.format( data_type, letter, 'output1' )
+    if debug:
+        filename_output1 = file_fmt.format( data_type, letter, 'output1' )
+        
+    else:
+        filename_output1 = '../pa2_results/pa2-{0}-{1}-{2}.txt'.format( data_type,
+                                                                        letter,
+                                                                         'output1' )
+    # else
     
     # find the distortion coefficients
     coeffs, qmin, qmax = undistort_emfield( filename_calreadings, filename_output1, 5 )
@@ -58,7 +68,7 @@ def improved_empivot_calib( filename_empivot: str ):
             coeffs, qmin, qmax = undistort_emfield( filename_calreadings,
                                                      filename_output1, 5,
                                                      qmin, qmax )
-            print('Recalibrated')
+            print( 'Recalibrated' )
             
     print("[After] coeffs, qmin, qmax\n", coeffs, qmin, qmax)
     # if
@@ -175,13 +185,14 @@ def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
 
         @return: position(x,y,z) of the fiducial points
     """
+    G_coords = open_files.open_emfiducials( filename_em_fiducials )
+#     print( "G_coords shape: ", np.shape( G_coords ) )
+#     print( "G_coords \n", G_coords )
 
-    name_pattern = r'pa(.)-(debug|unknown)-(.)-calreadings.txt'
-    res_calreading = re.search(name_pattern, filename_calreadings)
-    assign_num, data_type, letter = res_calreading.groups()
-    outfile = "../pa{0}_results/pa{0}-{1}-{2}-output1.txt".format(assign_num,
-                                                                    data_type,
-                                                                    letter)
+    G_tmp = G_coords['frame1']
+#     print( "G_tmp \n", G_tmp )
+    retval = cr.correctDistortion( coef, G_tmp, qmin, qmax )
+#     print( "retval \n", retval )
 
     Cal_readings = open_files.open_calreadings(filename_calreadings)
     C_undistorted = []
@@ -211,7 +222,7 @@ def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
     return [C_undistorted, outfile]
 # correct_C
 
-def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str ):
+def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str , debug: bool = False ):
     """Function in order to compute the registration frame transformation
        from the fiducials data and the em-tracked pointer. 
     
@@ -223,6 +234,9 @@ def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str ):
        @param filename_emfiducials:  A string representing the em-fiducials data
                                      file.
                                      
+       @param debug:                 A boolean representing if should use debug
+                                     output1 files or generated
+                                     
        @return: F_reg, a 4x4 homogeneous transformation matrix corresponding
                 to the transformation for the CT coordinates.
        
@@ -233,12 +247,20 @@ def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str ):
     data_type, letter = res_empivot.groups()
     filename_empivot = file_fmt.format( data_type, letter, 'empivot' )
     filename_calreadings = file_fmt.format( data_type, letter, 'calreadings' )
-    filename_output1 = file_fmt.format( data_type, letter, 'output1' )
+    if debug:
+        filename_output1 = file_fmt.format( data_type, letter, 'output1' )
+        
+    else:
+        filename_output1 = '../pa2_results/pa2-{0}-{1}-{2}.txt'.format( data_type,
+                                                                        letter,
+                                                                         'output1' )
+    # else
+    
     fid_ct = open_files.open_ctfiducials( filename_ctfiducials )
     fid_em = open_files.open_emfiducials( filename_emfiducials )
     
     # perform empivot calibration
-    t_G, _ = improved_empivot_calib( filename_empivot )
+    t_G, _ = improved_empivot_calib( filename_empivot , debug )
     t_G_hom = np.append( t_G, 1 )  # homogeneous representation
     
     coeffs, qmin, qmax = undistort_emfield( filename_calreadings, filename_output1, 5 )
@@ -269,9 +291,9 @@ def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str ):
     G_first = fid_em_calibrated['frame1']
     G_zero = np.mean( G_first, axis = 0 )
     g_j = G_first - G_zero
-    zoom = np.ones( 3 ) # no zooming
+    zoom = np.ones( 3 )  # no zooming
     
-    B_matrix = []  # where to contain the B_i values
+    B_matrix = np.zeros( ( 0, 3 ) )
     for frame in fid_em_calibrated.keys():
         # for each frame, caompute transformation of F_G[k]
         G = fid_em_calibrated[frame]
@@ -282,15 +304,13 @@ def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str ):
                                     F_G['Rotation'], zoom )
         
         B_i = F_G.dot( t_G_hom )[:3]
-        B_matrix.append( B_i )
+        B_matrix = np.vstack( ( B_matrix, B_i ) )
         
     # for
     
-    B_matrix = np.array( B_matrix )
     Freg = cr.point_cloud_reg( B_matrix, fid_ct )
     Freg = tf3e.affines.compose( Freg['Trans'], Freg['Rotation'],
-                                 zoom)
-    
+                                 zoom )
     return Freg
 
 # compute_Freg
@@ -370,4 +390,39 @@ def compute_test_points(filename_emnav:str, coeffs, qmin, qmax,t_G, Freg):
     return v
 
 if __name__ == '__main__':
+    # test compute_fiducial_pos
+    file_name_emfiducial = "../pa1-2_data/pa2-debug-a-em-fiducialss.txt"
+    file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
+    file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
+    coef, qmin, qmax = undistort_emfield( file_name_calreadings, file_name_output1, 2 )
+    compute_fiducial_pos( file_name_emfiducial, coef, qmin, qmax )
+    
+    # main program
+    calbody_list = sorted( glob.glob( "../pa1-2_data/*pa2*calbody.txt" ) )
+    calreading_list = sorted( glob.glob( "../pa1-2_data/*pa2*calreadings.txt" ) )
+    empivot_list = sorted( glob.glob( "../pa1-2_data/*pa2*empivot.txt" ) )
+    optpivot_list = sorted( glob.glob( "../pa1-2_data/*pa2*optpivot.txt" ) )
+    emfiducial_list = sorted( glob.glob( "../pa1-2_data/*pa2*em-fiducialss.txt" ) )
+    emnav_list = sorted( glob.glob( "../pa1-2_data/*pa2*EM-nav.txt" ) )
+    ctfid_list = sorted( glob.glob( "../pa1-2_data/*pa2*ct-fiducials.txt" ) )
+    
+    for calbody, calreadings, empivot, optpivot, emnav, ctfid, emfid in zip( calbody_list,
+                                                                             calreading_list,
+                                                                             empivot_list,
+                                                                             optpivot_list,
+                                                                             emnav_list,
+                                                                             ctfid_list,
+                                                                             emfiducial_list ):
+        
+        name_pattern = r'pa2-(debug|unknown)-(.)-calbody.txt'
+        res_calbody = re.search( name_pattern, calbody )
+        data_type, letter = res_calbody.groups()
+        print( "Data set: {0}-{1}".format( data_type, letter ) )
+        # compute C_expected and write output1
+        C_expected, outfile = compute_Cexpected( calbody, calreadings )
+        _, t_opt_post = perform_optical_pivot( calbody, optpivot )
+        _, t_em_post = improved_empivot_calib( empivot, False )
+        write_data( outfile, t_em_post, t_opt_post )
+        print( 'Completed\n' )
+    
     pass

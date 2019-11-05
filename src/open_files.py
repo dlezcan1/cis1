@@ -245,7 +245,7 @@ def open_optpivot( filename: str ):
                 optmarker_coordinates.append( coords )  # add the position from the jth OPT marker
                 
             # for
-            optpivot['frame' + str( i )] = np.array( optmarker_coordinates )     
+            optpivot['frame' + str( i + 1 )] = np.array( optmarker_coordinates )     
         
         # for
         
@@ -304,8 +304,8 @@ def open_emfiducials( filename: str ):
     with open( filename, 'r' ) as file:
         lines = file.read().split( '\n' )
         N_G, N_frames, _ = lines[0].split( ',' )
-        N_G = int(N_G)
-        N_frames = int(N_frames)
+        N_G = int( N_G )
+        N_frames = int( N_frames )
         
         G_coords = {}
         for i in range( N_frames ):
@@ -391,14 +391,14 @@ def open_output1( filename: str ):
         C_coords = {}
         for i in range( N_frames ):
             coords = []
-            for j in range( 3, N_C + 3):
+            for j in range( 3, N_C + 3 ):
                 c = em_probe_pos = np.fromstring( lines[i * N_C + j],
                                                    dtype = 'float' ,
                                                    sep = ',' )
                 coords.append( c )
             
             # for 
-            C_coords['frame' + str( i + 1)] = np.array(coords)
+            C_coords['frame' + str( i + 1 )] = np.array( coords )
             
         # for
         retval['C_expected'] = C_coords

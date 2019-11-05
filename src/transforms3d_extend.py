@@ -32,6 +32,32 @@ def inverse_transform44( matrix: np.ndarray ):
 # inverse_transform44
 
 
+def small_error_frame( alpha: np.ndarray, epsilon: np.ndarray ):
+    """This function is to return a 4x4 homogenous transformation matrix
+       representing a small error as a frame
+       
+       @author: Dimitri Lezcano
+       
+       @param alpha: the rotation vector
+       
+       @param epsilon: the translation vector
+       
+       @return: a 4x4 homogenous vector of the form
+                [ I + sk(alpha)  epsilon ]
+                [     0         1    ]
+                
+    """
+    
+    dR = np.eye( 3 ) + skew( alpha )
+    top = np.hstack( ( dR, epsilon.reshape( ( -1, 1 ) ) ) )
+    bottom = np.array( [0, 0, 0, 1] )
+    dF = np.vstack( ( top, bottom ) )
+    
+    return dF
+
+# small_error_frame
+    
+
 def skew( vector: np.ndarray ):
     """ A function to return the skew-symmetric of the vector.
         
@@ -39,7 +65,7 @@ def skew( vector: np.ndarray ):
         
         @returns: a 3x3 skew-symmetric matrix given the 3-D vector
     """
-    vector = vector.astype(np.float)
+    vector = vector.astype( np.float )
     
     return np.array( [[0, -vector[2], vector[1]],
                       [vector[2], 0, -vector[0]],
@@ -47,19 +73,20 @@ def skew( vector: np.ndarray ):
     
 # skew
 
+
 if __name__ == "__main__":
     # check invserse
-    q = np.random.randn(4)
-    q = q/np.linalg.norm(q)
-    R = quaternions.quat2mat(q)
+    q = np.random.randn( 4 )
+    q = q / np.linalg.norm( q )
+    R = quaternions.quat2mat( q )
     
-    p = np.random.randn(3)
+    p = np.random.randn( 3 )
         
-    F = affines.compose(p, R, np.ones(3))
-    invF = inverse_transform44(F)
-    print(F)
+    F = affines.compose( p, R, np.ones( 3 ) )
+    invF = inverse_transform44( F )
+    print( F )
     print()
-    print(invF)
+    print( invF )
     print()
-    print(F.dot(invF))
-    print("F.invF close to I?: {}".format(str(np.allclose(F.dot(invF),np.eye(4)))))
+    print( F.dot( invF ) )
+    print( "F.invF close to I?: {}".format( str( np.allclose( F.dot( invF ), np.eye( 4 ) ) ) ) )

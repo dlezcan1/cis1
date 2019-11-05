@@ -12,7 +12,6 @@ Created on Oct 17, 2019
 import transforms3d_extend
 import numpy as np
 from scipy.interpolate import BPoly
-from transforms3d_extend import skew
 
 
 def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
@@ -51,7 +50,7 @@ def correctDistortion( c: np.ndarray, vector: np.ndarray , qmin, qmax ):
     
     return retval
 
-# BPoly3D
+# correctDistortion
 
 
 def generate_berntensor( X: np.ndarray, qmin: float, qmax: float, order: int ):
@@ -109,63 +108,6 @@ def generate_berntensor( X: np.ndarray, qmin: float, qmax: float, order: int ):
     return bern_matrix
     
 # generate_berntensor
-
-
-def point_cloud_reg_SVD( a, b ):
-    """ This function read the two coordinate systems and
-        calculate the point-to-point registration function.
-        This algorithm is explained in class and implemented as taught.
-        The relationship between a, b, and the result ("F") is
-            b = F a
-        This function will use an SVD in order to determine the corresponding
-        frame transformation from quaternions
-
-        @author: Dimitri Lezcano
-
-        @param a: the input, numpy array where the vectors are the rows of the
-                  matrix
-                  
-        @param b: the corresponding output, numpy array where the vectors are
-                  the rows of the matrix
-
-        @return: F which is a dictionary consist of 'Ratation' as a rotation
-                matrix and 'Trans' as a translational vector
-    
-    """
-    mean_a = np.mean( a, axis = 0 )
-    mean_b = np.mean( b, axis = 0 )
-    
-    # Compute for mean and subtract from a, b, respectively
-    a_hat = a - mean_a
-    b_hat = b - mean_b
-    
-    M = np.empty( ( 0, 4 ) )
-    for ai, bi in zip( a_hat, b_hat ):
-        top_left = 0
-        top_right = bi - ai
-        bottom_left = top_right.reshape( ( -1, 1 ) )
-        bottom_right = transforms3d_extend.skew( top_right )
-        top = np.append( top_left, top_right )
-        bottom = np.hstack( ( bottom_left, bottom_right ) )
-        Mi = np.vstack( ( top, bottom ) )
-        M = np.append( M, Mi, axis = 0 )
-    
-    # for
-    
-    u, s, v = np.linalg.svd( M )
-    
-    q = v[:, 3]
-    
-    R = transforms3d_extend.quaternions.quat2mat( q )
-    
-    p = mean_b - R.dot( mean_a )
-    
-    F = {'Rotation': R, 'Trans': p}
-    
-    return F
-    
-# point_cloud_reg_SVD
-
 
 def point_cloud_reg_Arun( a, b ):
     """ This function read the two coordinate systems and
@@ -352,7 +294,7 @@ def pointer_calibration( transformation_list: list ):
         
         else:  # add to the list
             coeffs = np.vstack( ( coeffs, C ) )
-            translations = np.hstack( ( translations, -p ) )
+            translations = np.append(translations, -p)
             
         # else
     # for
