@@ -103,8 +103,8 @@ def generate_berntensor( X: np.ndarray, qmin: float, qmax: float, order: int ):
         # for
     # for
     
-    assert ( np.min( bern_matrix ) >= 0 )
-    assert ( np.max( bern_matrix ) <= 1 )
+    #assert ( np.min( bern_matrix ) >= 0 )
+    #assert ( np.max( bern_matrix ) <= 1 )
     
     return bern_matrix
     
@@ -337,7 +337,12 @@ def pointer_calibration( transformation_list: list ):
     for i, transform in enumerate( transformation_list ):
         # split the transformations into their base matrices and vectors
         # zoom and shear assumed to be ones and zeros, respectively
+        print("transform: \n", transform)
         p, R, _, _ = transforms3d_extend.affines.decompose44( transform ) 
+        #R = transform[:3, :3]
+        #p = transform[:3, 3]
+        print("R: \n", R)
+        print("p: \n", p)
         C = np.hstack( ( R, -np.eye( 3 ) ) )
         if i == 0:  # instantiate the sections
             coeffs = C
@@ -351,10 +356,14 @@ def pointer_calibration( transformation_list: list ):
             
         # else
     # for
+    #print("transformation_list: \n", transformation_list)
+    #print("coeffs: \n", coeffs)
+    #print("translations: \n", translations)
         
     lst_sqr_soln, resid, rnk, sng = np.linalg.lstsq( coeffs, translations, None )
     # p_ptr  is indexed 0-2
     # p_post is indexed 3-5
+    print("calibration")
     
     return [lst_sqr_soln[:3], lst_sqr_soln[3:]]
 

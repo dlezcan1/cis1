@@ -1,6 +1,4 @@
 '''
-Created on Oct 26, 2019
-
 @author: Hyunwoo Song and Dimitri Lezcano
 
 @summary: This module is to answer the Programming Assignment 1's specific
@@ -46,6 +44,7 @@ def improved_empivot_calib( filename_empivot: str ):
     # find the distortion coefficients
     coeffs, qmin, qmax = undistort_emfield( filename_calreadings, filename_output1, 5 )
     
+    print("[Before] coeffs, qmin, qmax\n", coeffs, qmin, qmax)
     # read in EM pivot data
     empivot = open_files.open_empivot( filename_empivot )
     
@@ -61,6 +60,7 @@ def improved_empivot_calib( filename_empivot: str ):
                                                      qmin, qmax )
             print('Recalibrated')
             
+    print("[After] coeffs, qmin, qmax\n", coeffs, qmin, qmax)
     # if
     
     # correct empivot data
@@ -90,6 +90,7 @@ def improved_empivot_calib( filename_empivot: str ):
                                     F_G['Rotation'], zoom )
         Trans_empivot.append( F_G )
 
+    print("Trans_empivot \n", Trans_empivot)
     ############## c ################
     # pivot calibration
     t_G, p_post = cr.pointer_calibration( Trans_empivot )
@@ -159,74 +160,6 @@ def undistort_emfield( filename_calreadings, filename_output1: str, order_fit: i
     
 # undistort_emfield
 
-#def compute_fiducials_em(filename_emfiducials : str, coef : np.ndarray, qmin, qmax, t_post):
-#    """ This functions corrects the C values from calreading txt file with respect to
-#=======
-
-def compute_fiducial_pos( filename_em_fiducials : str, coef : np.ndarray, qmin, qmax ):
-    """ This functions computes the position of fiducial points with respect to
-        EM tracker base coordinate system.
-
-        @author: Hyunwoo Song
-
-        @param filename_em_fiducials: string of the filename to be read
-
-        @return: position(x,y,z) of the fiducial points
-    """
-
-    name_pattern = r'pa(.)-(debug|unknown)-(.)-em-fiducialss.txt'
-    res_emfiducials = re.search(name_pattern, filename_em_fiducials)
-    assign_num, data_type, letter = res_emfiducials.groups()
-    outfile = "../pa{0}_results/pa{0}-{1}-{2}-output{0}.txt".format(assign_num,
-                                                                    data_type,
-                                                                    letter)
-
-    em_fiducials = open_files.open_emfiducials(filename_em_fiducials)
-    print("em_fiducials: \n", em_fiducials)
-
-    em_fiducials_fixed = []
-    for idx, frames in enumerate(em_fiducials):
-        print('frame %d/%d' %(idx+1, len(em_fiducials.keys())))
-        emfiducials_distorted = em_fiducials[frames]
-
-        retval = np.array([cr.correctDistortion(coef, fiducial_tmp, qmin, qmax) for fiducial_tmp in emfiducials_distorted])
-    
-        em_fiducials_fixed.append( retval )
-
-    print("em_fiducials_fixed: \n",em_fiducials_fixed)
-
-    # compute the fiducial point -> similar to Program1.compute_dimple
-    G_first = em_fiducials_fixed[0]
-    G_zero = np.mean(G_first, axis=0)
-    g_j = G_first - G_zero
-
-    Trans_empivot = []
-    zoom = np.zeros(3)
-    for idx, frame in enumerate(em_fiducials_fixed):
-        F_G = cr.point_cloud_reg(g_j, frame)
-        F_G = tf3e.affines.compose(F_G['Trans'],
-                                   F_G['Rotation'], zoom)
-        Trans_empivot.append(F_G)
-    print("Trans_empivot \n", Trans_empivot)
-    
-
-    ## write corrected C to output1.txt 
-    #with open(outfile, 'w+') as writestream:
-    #    outname = outfile.split( '/' )[-1]
-    #    writestream.write( "{0}, {1}, {2}\n".format(len( Cal_readings['frame1']['vec_c'] ),
-    #                                                len( Cal_readings.keys() ),
-    #                                                outname ) ) # first line
-    #    #write the undistorted C
-    #    for frame in C_undistorted:
-    #        for c in frame:
-    #            writestream.write( "{0:.2f}, {1:.2f}, {2:.2f} \n".format(*c))
-
-    #print("File '{}' written.".format(outfile))
-
-    return 0
-
-# compute_fiducials_em
-
 def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
     """ This functions corrects the C values from calreading txt file with respect to
         EM tracker base coordinate system.
@@ -234,6 +167,11 @@ def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
         @author: Hyunwoo Song
 
         @param filename_em_fiducials: string of the filename to be read
+
+        @param coef : coefficient for distortion correction
+
+        @param qmin, qmax: A floating point number representing the min/max
+                                 value for scaling 
 
         @return: position(x,y,z) of the fiducial points
     """
@@ -251,8 +189,10 @@ def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
         print('frame %d/%d' %(idx+1, len(Cal_readings.keys())))
         C_distorted = Cal_readings[frames]['vec_c']
 
+        #print("C_distorted \n", C_distorted)
         retval = np.array([cr.correctDistortion(coef, C_tmp, qmin, qmax) for C_tmp in C_distorted])
        
+        #print("C_corrected \n", np.array(retval))
         C_undistorted.append( retval )
         
     # write corrected C to output1.txt 
@@ -270,9 +210,6 @@ def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
 
     return [C_undistorted, outfile]
 # correct_C
-
-# compute_fiducial_pos
-
 
 def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str ):
     """Function in order to compute the registration frame transformation
@@ -336,7 +273,7 @@ def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str ):
     
     B_matrix = []  # where to contain the B_i values
     for frame in fid_em_calibrated.keys():
-        # for each frame, compute transformation of F_G[k]
+        # for each frame, caompute transformation of F_G[k]
         G = fid_em_calibrated[frame]
         # frame transformation [g_j -> G]
         F_G = cr.point_cloud_reg( g_j, G )
@@ -359,15 +296,41 @@ def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str ):
 # compute_Freg
 
 def compute_test_points(filename_emnav:str, coeffs, qmin, qmax,t_G, Freg):
+    """
+        This function computes the tip location with respect to the CT image
+
+        @author: Hyunwoo Song
+
+        @param filename_emnav: The name of input file where describes the frame
+                                of data defining test points
+
+        @param coeffs        : The coefficient which defines the distortion correction
+
+        @param qmin, qmax    : A floating point number representing the min/max
+                                 value for scaling
+     
+        @param t_G           : Vector representing the position of the pointer
+
+        @param Freg          : Transformation between ct coordinate and em coordinate
+
+        @return v            : The computed positions of test points in ct coordinates
+
+    """
+
+    name_pattern = r'pa(.)-(debug|unknown)-(.)-EM-nav.txt'
+    res_emnav = re.search(name_pattern, filename_emnav)
+    assign_num, data_type, letter = res_emnav.groups()
+    outfile = "../pa{0}_results/pa{0}-{1}-{2}-output{0}.txt".format( assign_num,
+                                                                    data_type,
+                                                                    letter)
+
+
     G_coords = open_files.open_emnav(filename_emnav)
-    print("G_coords \n", G_coords)
     G_emnav_calib = {}
     for frame in G_coords.keys():
         G_tmp = G_coords[frame]
         G_calib = [cr.correctDistortion( coeffs, g, qmin, qmax) for g in G_tmp]
         G_emnav_calib[frame] = np.array(G_calib)
-    print("G_emnav_calib \n", G_emnav_calib)
-    print("diff \n", G_coords['frame1'] - G_emnav_calib['frame1'])
 
     G_first = G_emnav_calib['frame1']
     G_zero =np.mean( G_first, axis = 0 )
@@ -384,24 +347,27 @@ def compute_test_points(filename_emnav:str, coeffs, qmin, qmax,t_G, Freg):
         F_G = tf3e.affines.compose( F_G['Trans'],
                                     F_G['Rotation'], zoom )
 
-        V_tmp = F_G.dot( t_G_hom)[:3]
+        V_tmp = F_G.dot( t_G_hom)
         V_matrix.append(V_tmp)
 
     V_matrix = np.array(V_matrix)
-    print("V_matrix (EM coordinate of pointer tip) \n", V_matrix)
-    print("Freg \n", Freg[:3])
     #compute test points
-    v = Freg[:3].dot(V_matrix)
+    v = np.array([Freg[:3].dot(v_tmp) for v_tmp in V_matrix])
+    #v = Freg[:3].dot(V_matrix)
     print("v (CT coordinate of pointer tip) \n", v)
 
+    with open(outfile, 'w+') as writestream:
+        outname = outfile.split('/')[-1]
+        writestream.write("{0}, {1} \n".format(len(G_emnav_calib.keys()),
+                                               outname) )
 
-    return 0
+        #write the v values
+        for v_calc in v:
+            writestream.write( "{0:.2f}, {1:.2f}, {2:.2f}\n".format(*v_calc))
+
+    print(" File '{}' written.".format(outfile))
+
+    return v
 
 if __name__ == '__main__':
-
-    file_name_emfiducial = "../pa1-2_data/pa2-debug-a-em-fiducialss.txt"
-    file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
-    file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
-    coef, qmin, qmax = undistort_emfield( file_name_calreadings, file_name_output1, 2 )
-    compute_fiducial_pos( file_name_emfiducial, coef, qmin, qmax )
     pass

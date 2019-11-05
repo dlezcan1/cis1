@@ -151,9 +151,9 @@ def debug_calibration():
     print()
 
     print( 25 * "=", "Debug result", 25 * "=" )
-    print( "pointer diff: ", p_ptr - p_ptr_cali )
+    print( "pointer diff: ", (p_ptr - p_ptr_cali)/p_ptr )
     print( "equal? ", np.array_equal( p_ptr, p_ptr_cali ) )
-    print( "post diff: ", p_post - p_post_cali )
+    print( "post diff: ", (p_post - p_post_cali)/p_post )
     print( "equal? ", np.array_equal( p_post, p_post_cali ) )
           
 
@@ -312,21 +312,33 @@ def debug_compute_Freg():
     filename_calreadings = file_fmt.format( data_type, letter, 'calreadings' )
     filename_output1 = file_fmt.format( data_type, letter, 'output1' )
     fid_em = open_files.open_emfiducials( filename_emfiducials )
+    print("filename_ctfiducials: ", filename_ctfiducials)
+    print("filename_emfiducials: ", filename_emfiducials)
+    print("filename_empivot: ", filename_empivot)
+    print("filename_calreadings: ", filename_calreadings)
+    print("filename_output1: ", filename_output1)
     
     # compute Freg and obtain b coords
+    print("compute_Freg")
     Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials )
+    print("open_ctfiducials")
     b = open_files.open_ctfiducials( filename_ctfiducials )
     
     # perform empivot calibration
+    print("improved_empivot_calib")
     t_G, _ = Program2.improved_empivot_calib( filename_empivot )
+    print("t_G \n", t_G)
     t_G_hom = np.append( t_G, 1 )  # homogeneous representation
+    print("t_G_hom \n", t_G_hom)
     
+    print("undistort_emfield")
     coeffs, qmin, qmax = Program2.undistort_emfield( filename_calreadings, filename_output1, 5 )
     
     # correct em_fiducial data
     fid_em_calibrated = {}
     for frame in fid_em.keys():
         coords = fid_em[frame]
+        print("correctDistortion")
         coords_calib = [cr.correctDistortion( coeffs, v, qmin, qmax ) for v in coords]
         fid_em_calibrated[frame] = np.array( coords_calib )
         
@@ -343,6 +355,7 @@ def debug_compute_Freg():
         # for each frame, compute transformation of F_G[k]
         G = fid_em_calibrated[frame]
         # frame transformation [g_j -> G]
+        print("point_cloud_reg")
         F_G = cr.point_cloud_reg( g_j, G )
         # homogeneous representation
         F_G = tf3e.affines.compose( F_G['Trans'],
@@ -393,7 +406,7 @@ def debug_compute_test_points():
     t_G, _ = Program2.improved_empivot_calib(filename_empivot)
 
     print("compute test points")
-    Program2.compute_test_points(file_name_emnav, coeffs, qmin, qmax, t_G, Freg)
+    v = Program2.compute_test_points(file_name_emnav, coeffs, qmin, qmax, t_G, Freg)
 
     print("open ct fiducials")
     ct_fiducials = open_files.open_ctfiducials(filename_ctfiducials)
@@ -404,13 +417,13 @@ def debug_compute_test_points():
 if __name__ == '__main__':
 #     debug_point_cloud()
     #debug_point_cloud_reg()
-#     debug_calibration()
+    #debug_calibration()
     #debug_undistort()
-#    debug_correct_C()
+    #debug_correct_C()
     #debug_compute_emfiducial()
     
-#     debug_undistort_emfield()
-#     debug_improved_empivot_calib()
+    #debug_undistort_emfield()
+    #debug_improved_empivot_calib()
     #debug_compute_Freg()
     debug_compute_test_points()
 
