@@ -185,16 +185,6 @@ def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
 
         @return: position(x,y,z) of the fiducial points
     """
-<<<<<<< HEAD
-    G_coords = open_files.open_emfiducials( filename_em_fiducials )
-#     print( "G_coords shape: ", np.shape( G_coords ) )
-#     print( "G_coords \n", G_coords )
-
-    G_tmp = G_coords['frame1']
-#     print( "G_tmp \n", G_tmp )
-    retval = cr.correctDistortion( coef, G_tmp, qmin, qmax )
-#     print( "retval \n", retval )
-=======
 
     name_pattern = r'pa(.)-(debug|unknown)-(.)-calreadings.txt'
     res_calreading = re.search(name_pattern, filename_calreadings)
@@ -202,7 +192,6 @@ def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
     outfile = "../pa{0}_results/pa{0}-{1}-{2}-output1.txt".format(assign_num,
                                                                     data_type,
                                                                     letter)
->>>>>>> master
 
     Cal_readings = open_files.open_calreadings(filename_calreadings)
     C_undistorted = []
@@ -400,13 +389,12 @@ def compute_test_points(filename_emnav:str, coeffs, qmin, qmax,t_G, Freg):
     return v
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     # test compute_fiducial_pos
     file_name_emfiducial = "../pa1-2_data/pa2-debug-a-em-fiducialss.txt"
     file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
     file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
     coef, qmin, qmax = undistort_emfield( file_name_calreadings, file_name_output1, 2 )
-    compute_fiducial_pos( file_name_emfiducial, coef, qmin, qmax )
+    compute_test_points( file_name_emfiducial, coef, qmin, qmax )
     
     # main program
     calbody_list = sorted( glob.glob( "../pa1-2_data/*pa2*calbody.txt" ) )
@@ -435,7 +423,4 @@ if __name__ == '__main__':
         _, t_em_post = improved_empivot_calib( empivot, False )
         write_data( outfile, t_em_post, t_opt_post )
         print( 'Completed\n' )
-    
-=======
->>>>>>> master
     pass
