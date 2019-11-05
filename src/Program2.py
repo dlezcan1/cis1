@@ -54,7 +54,7 @@ def improved_empivot_calib( filename_empivot: str , debug: bool = True ):
     # find the distortion coefficients
     coeffs, qmin, qmax = undistort_emfield( filename_calreadings, filename_output1, 5 )
     
-    print("[Before] coeffs, qmin, qmax\n", coeffs, qmin, qmax)
+#     print("[Before] coeffs, qmin, qmax\n", coeffs, qmin, qmax)
     # read in EM pivot data
     empivot = open_files.open_empivot( filename_empivot )
     
@@ -70,7 +70,7 @@ def improved_empivot_calib( filename_empivot: str , debug: bool = True ):
                                                      qmin, qmax )
             print( 'Recalibrated' )
             
-    print("[After] coeffs, qmin, qmax\n", coeffs, qmin, qmax)
+#     print("[After] coeffs, qmin, qmax\n", coeffs, qmin, qmax)
     # if
     
     # correct empivot data
@@ -100,7 +100,7 @@ def improved_empivot_calib( filename_empivot: str , debug: bool = True ):
                                     F_G['Rotation'], zoom )
         Trans_empivot.append( F_G )
 
-    print("Trans_empivot \n", Trans_empivot)
+#     print("Trans_empivot \n", Trans_empivot)
     ############## c ################
     # pivot calibration
     t_G, p_post = cr.pointer_calibration( Trans_empivot )
@@ -196,7 +196,7 @@ def correct_C(filename_calreadings : str, coef : np.ndarray, qmin, qmax):
     Cal_readings = open_files.open_calreadings(filename_calreadings)
     C_undistorted = []
     for idx, frames in enumerate(Cal_readings):
-        print('frame %d/%d' %(idx+1, len(Cal_readings.keys())))
+#         print('frame %d/%d' %(idx+1, len(Cal_readings.keys())))
         C_distorted = Cal_readings[frames]['vec_c']
 
         #print("C_distorted \n", C_distorted)
@@ -314,7 +314,7 @@ def compute_Freg( filename_ctfiducials: str, filename_emfiducials: str , debug: 
 
 # compute_Freg
 
-def compute_test_points(filename_emnav:str, coeffs, qmin, qmax,t_G, Freg):
+def compute_test_points(filename_emnav:str, coeffs, qmin, qmax, t_G, Freg):
     """
         This function computes the tip location with respect to the CT image
 
@@ -335,12 +335,10 @@ def compute_test_points(filename_emnav:str, coeffs, qmin, qmax,t_G, Freg):
         @return v            : The computed positions of test points in ct coordinates
 
     """
-
-    name_pattern = r'pa(.)-(debug|unknown)-(.)-EM-nav.txt'
+    name_pattern = r'pa2-(debug|unknown)-(.)-EM-nav.txt'
     res_emnav = re.search(name_pattern, filename_emnav)
-    assign_num, data_type, letter = res_emnav.groups()
-    outfile = "../pa{0}_results/pa{0}-{1}-{2}-output{0}.txt".format( assign_num,
-                                                                    data_type,
+    data_type, letter = res_emnav.groups()
+    outfile = "../pa2_results/pa2-{0}-{1}-output2.txt".format(    data_type,
                                                                     letter)
 
 
@@ -373,7 +371,7 @@ def compute_test_points(filename_emnav:str, coeffs, qmin, qmax,t_G, Freg):
     #compute test points
     v = np.array([Freg[:3].dot(v_tmp) for v_tmp in V_matrix])
     #v = Freg[:3].dot(V_matrix)
-    print("v (CT coordinate of pointer tip) \n", v)
+#     print("v (CT coordinate of pointer tip) \n", v)
 
     with open(outfile, 'w+') as writestream:
         outname = outfile.split('/')[-1]
@@ -388,13 +386,15 @@ def compute_test_points(filename_emnav:str, coeffs, qmin, qmax,t_G, Freg):
 
     return v
 
+# compute_test_points
+
 if __name__ == '__main__':
-    # test compute_fiducial_pos
-    file_name_emfiducial = "../pa1-2_data/pa2-debug-a-em-fiducialss.txt"
-    file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
-    file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
-    coef, qmin, qmax = undistort_emfield( file_name_calreadings, file_name_output1, 2 )
-    compute_test_points( file_name_emfiducial, coef, qmin, qmax )
+#     # test compute_fiducial_pos
+#     file_name_emfiducial = "../pa1-2_data/pa2-debug-a-em-fiducialss.txt"
+#     file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
+#     file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
+#     coef, qmin, qmax = undistort_emfield( file_name_calreadings, file_name_output1, 5 )
+#     compute_test_points( file_name_emfiducial, coef, qmin, qmax )
     
     # main program
     calbody_list = sorted( glob.glob( "../pa1-2_data/*pa2*calbody.txt" ) )
@@ -420,7 +420,10 @@ if __name__ == '__main__':
         # compute C_expected and write output1
         C_expected, outfile = compute_Cexpected( calbody, calreadings )
         _, t_opt_post = perform_optical_pivot( calbody, optpivot )
-        _, t_em_post = improved_empivot_calib( empivot, False )
-        write_data( outfile, t_em_post, t_opt_post )
+        t_G, t_em_post = improved_empivot_calib( empivot, False )
+        Freg = compute_Freg(ctfid, emfid, False)
+        outfile1 = write_data( outfile, t_em_post, t_opt_post )
+        coef, qmin, qmax = undistort_emfield( calreadings, outfile1, 5 )
+        compute_test_points( emnav, coef, qmin, qmax , t_G, Freg)
         print( 'Completed\n' )
     pass

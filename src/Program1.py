@@ -269,7 +269,7 @@ def write_data(outfile, EM_probe_pos, OPT_probe_pos):
         resultstream.writelines(lines)
     
     print("Result file saved >>> [ ", outname, "]")
-    return 0
+    return outfile
 
 # write_data
 

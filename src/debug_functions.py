@@ -196,8 +196,6 @@ def debug_undistort():
     
 # debug_undistort
 
-<<<<<<< HEAD
-=======
 def debug_correct_C():
     print(25*"=", " debug_correct_C " , 25*"=")
 
@@ -242,7 +240,6 @@ def debug_compute_emfiducial():
     _, t_post = Program2.improved_empivot_calib( file_name_empivot)
     coef, qmin, qmax = Program2.undistort_emfield( file_name_calreadings, file_name_output1, 5)
     #Program2.compute_fiducials_em(file_name_emfiducials, coef, qmin, qmax, t_post)
->>>>>>> master
 
 def debug_undistort_emfield():
     """Function to debug 'Program2.undistort_emfield' function"""
@@ -324,13 +321,9 @@ def debug_compute_Freg():
     print("filename_output1: ", filename_output1)
     
     # compute Freg and obtain b coords
-<<<<<<< HEAD
-    Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials, True )
-=======
     print("compute_Freg")
     Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials )
     print("open_ctfiducials")
->>>>>>> master
     b = open_files.open_ctfiducials( filename_ctfiducials )
     
     # perform empivot calibration
@@ -421,30 +414,19 @@ def debug_compute_test_points():
     ct_fiducials = open_files.open_ctfiducials(filename_ctfiducials)
     print("ct fiducials \n", ct_fiducials)
     
-
+# debug_compute_test_points
     
 if __name__ == '__main__':
 #     debug_point_cloud()
-<<<<<<< HEAD
-#     debug_point_cloud_reg()
-#     debug_calibration()
-#     debug_undistort()
-#     debug_undistort_emfield()
-#     debug_improved_empivot_calib()
-    debug_compute_Freg()
-    pass
-=======
     #debug_point_cloud_reg()
     #debug_calibration()
     #debug_undistort()
     #debug_correct_C()
     #debug_compute_emfiducial()
-    
     #debug_undistort_emfield()
     #debug_improved_empivot_calib()
     #debug_compute_Freg()
     debug_compute_test_points()
->>>>>>> master
 
 # if
     

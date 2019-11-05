@@ -336,12 +336,12 @@ def pointer_calibration( transformation_list: list ):
     for i, transform in enumerate( transformation_list ):
         # split the transformations into their base matrices and vectors
         # zoom and shear assumed to be ones and zeros, respectively
-        print("transform: \n", transform)
+#         print("transform: \n", transform)
         p, R, _, _ = transforms3d_extend.affines.decompose44( transform ) 
         #R = transform[:3, :3]
         #p = transform[:3, 3]
-        print("R: \n", R)
-        print("p: \n", p)
+#         print("R: \n", R)
+#         print("p: \n", p)
         C = np.hstack( ( R, -np.eye( 3 ) ) )
         if i == 0:  # instantiate the sections
             coeffs = C
@@ -362,7 +362,7 @@ def pointer_calibration( transformation_list: list ):
     lst_sqr_soln, resid, rnk, sng = np.linalg.lstsq( coeffs, translations, None )
     # p_ptr  is indexed 0-2
     # p_post is indexed 3-5
-    print("calibration")
+#     print("calibration")
     
     return [lst_sqr_soln[:3], lst_sqr_soln[3:]]
 
