@@ -152,9 +152,9 @@ def debug_calibration():
     print()
 
     print( 25 * "=", "Debug result", 25 * "=" )
-    print( "pointer diff: ", (p_ptr - p_ptr_cali)/p_ptr )
+    print( "pointer diff: ", p_ptr - p_ptr_cali )
     print( "equal? ", np.array_equal( p_ptr, p_ptr_cali ) )
-    print( "post diff: ", (p_post - p_post_cali)/p_post )
+    print( "post diff: ", p_post - p_post_cali )
     print( "equal? ", np.array_equal( p_post, p_post_cali ) )
           
 
@@ -196,50 +196,6 @@ def debug_undistort():
     
 # debug_undistort
 
-def debug_correct_C():
-    print(25*"=", " debug_correct_C " , 25*"=")
-
-    file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
-    file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
-    # Read C_expected from output1
-    print("reading C_expected...")
-    C_exp_data = open_files.open_output1(file_name_output1)['C_expected']
-    C_expected = []
-    for frame in C_exp_data.keys():
-        C_expected.append(C_exp_data[frame])
-
-    #print("C_expected(first frame): \n", C_expected[0])
-    
-    # Dewarping C
-    print("dewarping C...")
-    coef, qmin, qmax = Program2.undistort_emfield( file_name_calreadings, file_name_output1, 5)
-    C_undistorted, outfile = Program2.correct_C(file_name_calreadings, coef, qmin, qmax)
-
-    #print("C_undistorted(first frame): \n", C_undistorted[0])
-    #print()
-
-    # Check the error
-    
-    print("Dewarp correct? ", np.array_equal(C_expected, C_undistorted))
-    if np.array_equal(C_expected, C_undistorted) is False:
-        error = np.array([u-v for u, v in zip(C_expected, C_undistorted)])
-        print("Error: \n", error)
-
-    print(25*"=", " Debugging finished ", 25*"=")
-    
-# debug_correct_C
-
-def debug_compute_emfiducial():
-    print(25*'=', ' compute fiducial points in em coord system ', 25*'=')
-
-    file_name_empivot = "../pa1-2_data/pa2-debug-a-empivot.txt"
-    file_name_calreadings = "../pa1-2_data/pa2-debug-a-calreadings.txt"
-    file_name_emfiducials = "../pa1-2_data/pa2-debug-a-em-fiducialss.txt"
-    file_name_output1 = "../pa1-2_data/pa2-debug-a-output1.txt"
-    print("reading em fiducial data...")
-    _, t_post = Program2.improved_empivot_calib( file_name_empivot)
-    coef, qmin, qmax = Program2.undistort_emfield( file_name_calreadings, file_name_output1, 5)
-    #Program2.compute_fiducials_em(file_name_emfiducials, coef, qmin, qmax, t_post)
 
 def debug_undistort_emfield():
     """Function to debug 'Program2.undistort_emfield' function"""
@@ -314,33 +270,21 @@ def debug_compute_Freg():
     filename_calreadings = file_fmt.format( data_type, letter, 'calreadings' )
     filename_output1 = file_fmt.format( data_type, letter, 'output1' )
     fid_em = open_files.open_emfiducials( filename_emfiducials )
-    print("filename_ctfiducials: ", filename_ctfiducials)
-    print("filename_emfiducials: ", filename_emfiducials)
-    print("filename_empivot: ", filename_empivot)
-    print("filename_calreadings: ", filename_calreadings)
-    print("filename_output1: ", filename_output1)
     
     # compute Freg and obtain b coords
-    print("compute_Freg")
-    Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials )
-    print("open_ctfiducials")
+    Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials, True )
     b = open_files.open_ctfiducials( filename_ctfiducials )
     
     # perform empivot calibration
-    print("improved_empivot_calib")
     t_G, _ = Program2.improved_empivot_calib( filename_empivot )
-    print("t_G \n", t_G)
     t_G_hom = np.append( t_G, 1 )  # homogeneous representation
-    print("t_G_hom \n", t_G_hom)
     
-    print("undistort_emfield")
     coeffs, qmin, qmax = Program2.undistort_emfield( filename_calreadings, filename_output1, 5 )
     
     # correct em_fiducial data
     fid_em_calibrated = {}
     for frame in fid_em.keys():
         coords = fid_em[frame]
-        print("correctDistortion")
         coords_calib = [cr.correctDistortion( coeffs, v, qmin, qmax ) for v in coords]
         fid_em_calibrated[frame] = np.array( coords_calib )
         
@@ -357,7 +301,6 @@ def debug_compute_Freg():
         # for each frame, compute transformation of F_G[k]
         G = fid_em_calibrated[frame]
         # frame transformation [g_j -> G]
-        print("point_cloud_reg")
         F_G = cr.point_cloud_reg( g_j, G )
         # homogeneous representation
         F_G = tf3e.affines.compose( F_G['Trans'],
@@ -389,45 +332,16 @@ def debug_compute_Freg():
 
 # debug_compute_Freg
 
-def debug_compute_test_points():
-    file_name_emnav = "../pa1-2_data/pa2-debug-a-EM-nav.txt"
-    filename_calreadings = '../pa1-2_data/pa2-debug-a-calreadings.txt'
-    filename_output1 = '../pa1-2_data/pa2-debug-a-output1.txt'
-    filename_ctfiducials = '../pa1-2_data/pa2-debug-a-ct-fiducials.txt'
-    filename_emfiducials = '../pa1-2_data/pa2-debug-a-em-fiducialss.txt'
-    filename_empivot = '../pa1-2_data/pa2-debug-a-empivot.txt'
-    
-    # compute Freg and obtain b coords
-    print("compute Freg")
-    Freg = Program2.compute_Freg( filename_ctfiducials, filename_emfiducials )
-    
-    print("undistort emfield")
-    coeffs, qmin, qmax = Program2.undistort_emfield(filename_calreadings, filename_output1, 5)
-
-    print("compute pointer tip position")
-    t_G, _ = Program2.improved_empivot_calib(filename_empivot)
-
-    print("compute test points")
-    v = Program2.compute_test_points(file_name_emnav, coeffs, qmin, qmax, t_G, Freg)
-
-    print("open ct fiducials")
-    ct_fiducials = open_files.open_ctfiducials(filename_ctfiducials)
-    print("ct fiducials \n", ct_fiducials)
-    
-
     
 if __name__ == '__main__':
 #     debug_point_cloud()
-    #debug_point_cloud_reg()
-    #debug_calibration()
-    #debug_undistort()
-    #debug_correct_C()
-    #debug_compute_emfiducial()
-    
-    #debug_undistort_emfield()
-    #debug_improved_empivot_calib()
-    #debug_compute_Freg()
-    debug_compute_test_points()
+#     debug_point_cloud_reg()
+#     debug_calibration()
+#     debug_undistort()
+#     debug_undistort_emfield()
+#     debug_improved_empivot_calib()
+    debug_compute_Freg()
+    pass
 
 # if
     
